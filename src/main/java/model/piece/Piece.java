@@ -154,4 +154,30 @@ public abstract class Piece implements PiecesStateListener {
         return type;
     }
 
+    /**
+     * Checks if this Piece is equal to another object. They are equal if the other object is a Piece with
+     * the same colour, type and current square as this Piece.
+     * @param other
+     * @return true if the piece is equal to other
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof Piece) {
+            Piece otherPiece = (Piece) other;
+            if (otherPiece.colour == colour && otherPiece.type == type &&
+                    otherPiece.currentLocation.equals(currentLocation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = colour.hashCode() * 5 + type.hashCode() * 7;
+        if (currentLocation.isPresent()) {
+            hash += + 11 * currentLocation.get().hashCode();
+        }
+        return hash;
+    }
 }
