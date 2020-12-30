@@ -17,21 +17,6 @@ public class FakePiece extends Piece {
         super(colour, square, type);
     }
 
-    /**
-     * Sets the squares the piece can move to
-     * @param squares
-     */
-    public void setMoveableSquares(Set<Square> squares) {
-        moveableSquares = squares;
-    }
-
-    /**
-     * Sets the piece as dead
-     */
-    public void kill() {
-        currentLocation = Optional.empty();
-    }
-
     @Override
     protected void updateMoveableSquares(PiecesState event) {
         moveableSquares = CollectionUtil.createSet(new Square[] {Square.H2, Square.C7});

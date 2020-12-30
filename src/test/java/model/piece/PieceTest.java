@@ -16,6 +16,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class PieceTest {
@@ -31,8 +32,7 @@ public class PieceTest {
     @BeforeEach
     public void setupFakePiece() {
         fakePiece = new FakePiece(Colour.WHITE, Square.E1, PieceType.PAWN);
-        Set<Square> moveableSquares = CollectionUtil.createSet(new Square[] {Square. B6, Square.A8});
-        fakePiece.setMoveableSquares(moveableSquares);
+        fakePiece.moveableSquares = CollectionUtil.createSet(new Square[] {Square. B6, Square.A8});;
     }
 
     @Test
@@ -60,7 +60,7 @@ public class PieceTest {
     @Test
     public void testMoveToWhenDead() {
         // Given
-        fakePiece.kill();
+        kill(fakePiece);
 
         // When
         try {
@@ -85,7 +85,7 @@ public class PieceTest {
     @Test
     public void testMoveToUncheckedWhenDead() {
         // Given
-        fakePiece.kill();
+        kill(fakePiece);
 
         // When
         fakePiece.moveToUnchecked(Square.A8);
@@ -112,7 +112,7 @@ public class PieceTest {
     @Test
     public void testIsAliveWhenDead() {
         // Given
-        fakePiece.kill();
+        kill(fakePiece);
 
         // When and then
         assertFalse(fakePiece.isAlive());
@@ -121,7 +121,7 @@ public class PieceTest {
     @Test
     public void testIsAliveWhenResurrected() {
         // Given
-        fakePiece.kill();
+        kill(fakePiece);
 
         // When
         fakePiece.moveToUnchecked(Square.A8);
@@ -138,7 +138,7 @@ public class PieceTest {
     @Test
     public void testGetCurrentSquareWhenDead() {
         // Given
-        fakePiece.kill();
+        kill(fakePiece);
 
         // When
         try {
@@ -189,5 +189,9 @@ public class PieceTest {
         // Then
         assertFalse(fakePiece.isAlive());
         assertEquals(new HashSet<>(), fakePiece.getMoveableSquares());
+    }
+
+    private void kill(Piece piece) {
+        piece.currentLocation = Optional.empty();
     }
 }
