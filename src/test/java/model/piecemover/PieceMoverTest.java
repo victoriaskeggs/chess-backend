@@ -12,14 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import testutil.CollectionUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class PieceMoverTest {
     @Mock
@@ -31,7 +33,10 @@ public class PieceMoverTest {
     @Mock
     private Piece mockKing;
 
-    private PieceMover fakePieceMover;
+    /**
+     * Object under test
+     */
+    private PieceMover pieceMover;
 
     @BeforeEach
     public void setupFakePieceMover() {
@@ -42,19 +47,10 @@ public class PieceMoverTest {
         setupPiece(mockKing, Colour.WHITE, Square.D1);
 
         // Set up fake PieceMover
-        fakePieceMover = new PieceMover();
-        fakePieceMover.piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2}));
-        fakePieceMover.piecesByType.put(PieceType.KING, CollectionUtil.createSet(new Piece[] {mockKing}));
-    }
-
-    @Test
-    public void testSetupPiecesAsUpdateListeners() {
-        // When
-        fakePieceMover.setupPiecesAsPiecesStateListeners();
-
-        // Then
-        assertEquals(fakePieceMover.piecesStateListeners, CollectionUtil.createSet(new Piece [] {mockPawn1, mockPawn2, mockKing}));
-        verifyUpdate(getInitialColourLocations(), getInitialKingLocations());
+        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
+        piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2}));
+        piecesByType.put(PieceType.KING, CollectionUtil.createSet(new Piece[] {mockKing}));
+        pieceMover = new PieceMover(piecesByType);
     }
 
     @Test
@@ -62,23 +58,19 @@ public class PieceMoverTest {
         // Given
         when(mockPawn1.canMoveTo(Square.B6)).thenReturn(true);
 
+        final Square[] mockPawn1Square = {Square.B5};
+        doAnswer(invocation -> {
+            mockPawn1Square[0] = Square.B6; // update square mock pawn is on
+            return null;
+        }).when(mockPawn1).moveTo(Square.B6);
+        when(mockPawn1.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> mockPawn1Square[0]);
+
         // When
-        fakePieceMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
+        pieceMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
 
         // Then
         verify(mockPawn1).moveTo(Square.B6);
-    }
 
-    @Test
-    public void testFirePiecesUpdateEvent() {
-        // Given
-        when(mockPawn1.getCurrentSquare()).thenReturn(Square.B6);
-        fakePieceMover.piecesStateListeners = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockKing});
-
-        // When
-        fakePieceMover.firePiecesStateEvent();
-
-        // Then
         Map<Square, Colour> colourLocations = getInitialColourLocations();
         colourLocations.remove(Square.B5);
         colourLocations.put(Square.B6, Colour.WHITE);
@@ -86,10 +78,37 @@ public class PieceMoverTest {
     }
 
     @Test
+    public void testUndoMove() {
+        // Given
+        when(mockPawn1.canMoveTo(Square.B6)).thenReturn(true);
+
+        final Square[] mockPawn1Square = {Square.B5};
+        doAnswer(invocation -> {
+            mockPawn1Square[0] = Square.B6; // update square mock pawn is on
+            return null;
+        }).when(mockPawn1).moveTo(Square.B6);
+        doAnswer(invocation -> {
+            mockPawn1Square[0] = Square.B5; // update square mock pawn is on
+            return null;
+        }).when(mockPawn1).moveToUnchecked(Square.B5);
+        when(mockPawn1.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> mockPawn1Square[0]);
+
+        pieceMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
+
+        // When
+        pieceMover.undoMove();
+
+        // Then
+        verify(mockPawn1).moveTo(Square.B6);
+        verify(mockPawn1).moveToUnchecked(Square.B5);
+        verifyUpdate(getInitialColourLocations(), getInitialKingLocations());
+    }
+
+    @Test
     public void testFindPieceWhenPieceDoesNotExist() {
         // When
         try {
-            fakePieceMover.findPiece(PieceType.PAWN, Colour.WHITE, Square.H2);
+            pieceMover.findPiece(PieceType.PAWN, Colour.WHITE, Square.H2);
         } catch (ChessException exception) {
 
             // Then
@@ -100,7 +119,7 @@ public class PieceMoverTest {
     @Test
     public void testFindPieceWhenPieceExists() {
         // When
-        Piece actual = fakePieceMover.findPiece(PieceType.KING, Colour.WHITE, Square.D1);
+        Piece actual = pieceMover.findPiece(PieceType.KING, Colour.WHITE, Square.D1);
 
         // Then
         assertEquals(mockKing, actual);
@@ -109,10 +128,20 @@ public class PieceMoverTest {
     @Test
     public void testFindPieces() {
         // When
-        Set<Piece> actual = fakePieceMover.findPieces(PieceType.PAWN, Colour.BLACK);
+        Set<Piece> actual = pieceMover.findPieces(PieceType.PAWN, Colour.BLACK);
 
         // Then
         Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn2});
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetPieces() {
+        // When
+        Set<Piece> actual = pieceMover.getPieces();
+
+        // Then
+        Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockKing});
         assertEquals(expected, actual);
     }
 
@@ -137,7 +166,7 @@ public class PieceMoverTest {
     private void verifyUpdate(Map<Square, Colour> expectedColourLocations, Set<Square> expectedKingLocations) {
         for (Piece mock : new Piece[] {mockPawn1, mockPawn2, mockKing}) {
             ArgumentCaptor<PiecesState> piecesStateCaptor = ArgumentCaptor.forClass(PiecesState.class);
-            verify(mock).update(piecesStateCaptor.capture());
+            verify(mock, atLeast(1)).update(piecesStateCaptor.capture());
             assertEquals(expectedKingLocations, piecesStateCaptor.getValue().getKingLocations());
             assertEquals(expectedColourLocations, piecesStateCaptor.getValue().getColourLocations());
         }
