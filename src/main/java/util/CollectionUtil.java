@@ -63,4 +63,20 @@ public class CollectionUtil {
         }
         return map;
     }
+
+    /**
+     * Retrieves the present items from a collection of Optionals.
+     * @param items
+     * @param <T>
+     * @return
+     */
+    public static <T> Set<T> getPresent(Collection<Optional<T>> items) {
+        Set<T> present = new HashSet<>();
+        for (Optional<T> item : items) {
+            if (item.isPresent()) {
+                present.add(item.get());
+            }
+        }
+        return present;
+    }
 }

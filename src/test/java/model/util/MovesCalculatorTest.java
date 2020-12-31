@@ -3,6 +3,7 @@ package model.util;
 import model.Colour;
 import model.Square;
 import model.piecestate.PiecesState;
+import org.junit.jupiter.api.BeforeEach;
 import testutil.CollectionUtil;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class MovesUtilTest {
+public class MovesCalculatorTest {
+
+    /**
+     * Object under test
+     */
+    private MovesCalculator movesCalculator;
+
+    @BeforeEach
+    public void setup() {
+        movesCalculator = new MovesCalculator();
+    }
 
     /**
      * 8: |  |__|  |__|  |__|  |__|
@@ -35,7 +46,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForPawnWhenPawnIsWhite() {
+    public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsWhite() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.D5, Square.E5, Square.F5, Square.E4},
@@ -43,11 +54,16 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, new HashSet<>());
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForPawn(Square.E4, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(Square.E4, Colour.WHITE, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(new Square[] {Square.D5});
-        assertEquals(expected, actual);
+        Set<Square> expectedMoveable = CollectionUtil.createSet(new Square[] {Square.D5});
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(new Square[] {Square.D5, Square.F5});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
@@ -68,7 +84,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForPawnWhenPawnIsBlack() {
+    public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsBlack() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.D5, Square.E6},
@@ -77,11 +93,16 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, kingLocations);
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForPawn(Square.E6, Colour.BLACK, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(Square.E6, Colour.BLACK, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(new Square[] {Square.E5});
-        assertEquals(expected, actual);
+        Set<Square> expectedMoveable = CollectionUtil.createSet(new Square[] {Square.E5});
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(new Square[] {Square.D5, Square.F5});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
@@ -99,17 +120,20 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForPawnWhenPawnIsOnEdge() {
+    public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsOnEdge() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.E8}, new Colour[] {Colour.WHITE});
         PiecesState state = new PiecesState(colourLocations, new HashSet<>());
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForPawn(Square.E8, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(Square.E8, Colour.WHITE, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        assertEquals(new HashSet<>(), actual);
+        assertEquals(new HashSet<>(), actualMoveable);
+        assertEquals(new HashSet<>(), actualThreatened);
     }
 
     /**
@@ -132,7 +156,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForCastle() {
+    public void testCalculateThreatenedAndMoveableSquaresForCastle() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.D7, Square.B5, Square.D5, Square.F5},
@@ -141,12 +165,19 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, kingLocations);
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForCastle(Square.D5, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForCastle(Square.D5, Colour.WHITE, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(
+        Set<Square> expectedMoveable = CollectionUtil.createSet(
                 new Square[] {Square.D6, Square.B5, Square.C5, Square.E5, Square.D4, Square.D3, Square.D2, Square.D1});
-        assertEquals(expected, actual);
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(
+                new Square[] {Square.D6, Square.B5, Square.C5, Square.E5, Square.D4, Square.D3, Square.D2, Square.D1,
+                Square.B5, Square.F5, Square.D7});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
@@ -170,7 +201,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForKnight() {
+    public void testCalculateThreatenedAndMoveableSquaresForKnight() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.D7, Square.B6, Square.A5, Square.B5, Square.D5, Square.A4},
@@ -179,11 +210,17 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, kingLocations);
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForKnight(Square.B6, Colour.BLACK, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForKnight(Square.B6, Colour.BLACK, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(new Square[] {Square.A4, Square.C4, Square.A8, Square.C8});
-        assertEquals(expected, actual);
+        Set<Square> expectedMoveable = CollectionUtil.createSet(new Square[] {Square.A4, Square.C4, Square.A8, Square.C8});
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(
+                new Square[] {Square.A4, Square.C4, Square.A8, Square.C8, Square.D5, Square.D7});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
@@ -206,7 +243,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForBishop() {
+    public void testCalculateThreatenedAndMoveableSquaresForBishop() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.B7, Square.C4, Square.D5, Square.G2},
@@ -215,12 +252,19 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, kingLocations);
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForBishop(Square.D5, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForBishop(Square.D5, Colour.WHITE, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(
+        Set<Square> expectedMoveable = CollectionUtil.createSet(
                 new Square[] {Square.B7, Square.C6, Square.E6, Square.F7, Square.G8, Square.E4, Square.F3});
-        assertEquals(expected, actual);
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(
+                new Square[] {Square.B7, Square.C6, Square.E6, Square.F7, Square.G8, Square.E4, Square.F3,
+                        Square.B7, Square.G2, Square.C4});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
@@ -243,7 +287,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForQueen() {
+    public void testCalculateThreatenedAndMoveableSquaresForQueen() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.D8, Square.B7, Square.F5, Square.C4, Square.D5, Square.G2},
@@ -252,14 +296,22 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, kingLocations);
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForQueen(Square.D5, Colour.BLACK, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForQueen(Square.D5, Colour.BLACK, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(
+        Set<Square> expectedMoveable = CollectionUtil.createSet(
                 new Square[] {Square.D8, Square.D7, Square.D6, Square.C6, Square.E6, Square.F7, Square.G8,
                 Square.A5, Square.B5, Square.C5, Square.E5, Square.C4, Square.D4, Square.D3, Square.D2, Square.D1,
                 Square.E4, Square.F3});
-        assertEquals(expected, actual);
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(
+                new Square[] {Square.D8, Square.D7, Square.D6, Square.C6, Square.E6, Square.F7, Square.G8,
+                        Square.A5, Square.B5, Square.C5, Square.E5, Square.C4, Square.D4, Square.D3, Square.D2, Square.D1,
+                        Square.E4, Square.F3, Square.F5, Square.B7, Square.G2});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
@@ -280,7 +332,7 @@ public class MovesUtilTest {
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
-    public void testGetMoveableSquaresForKing() {
+    public void testCalculateThreatenedAndMoveableSquaresForKing() {
         // Given
         Map<Square, Colour> colourLocations = CollectionUtil.createMap(
                 new Square[] {Square.C4, Square.C3}, new Colour[] {Colour.WHITE, Colour.BLACK});
@@ -288,11 +340,17 @@ public class MovesUtilTest {
         PiecesState state = new PiecesState(colourLocations, kingLocations);
 
         // When
-        Set<Square> actual = MovesUtil.getMoveableSquaresForKing(Square.D4, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForKing(Square.D4, Colour.WHITE, state);
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expected = CollectionUtil.createSet(
+        Set<Square> expectedMoveable = CollectionUtil.createSet(
                 new Square[] {Square.C5, Square.D5, Square.E5, Square.E4, Square.C3, Square.D3, Square.E3});
-        assertEquals(expected, actual);
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(
+                new Square[] {Square.C5, Square.D5, Square.E5, Square.E4, Square.C3, Square.D3, Square.E3, Square.C4});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 }

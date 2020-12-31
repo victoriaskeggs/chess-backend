@@ -22,10 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class EndgameHelperTest {
-
-    // TODO change piece.canMoveTo() to piece.threatens()
-    // TODO change piece.getMoveableSquares() to piece.getThreatenedSquares()
-
     /**
      * Object under test
      */
@@ -345,20 +341,20 @@ public class EndgameHelperTest {
 
     /**
      * Sets up a mock piece to return values when getType(), getColour(), getCurrentSquare(), getMoveableSquares()
-     * and canMoveTo(Square) are called on the piece.
+     * and doesThreaten(Square) are called on the piece.
      * @param type to return when getType() is called
      * @param colour to return get getColour() is called
      * @param currentSquare to return when getCurrentSquare() is called
-     * @param threatenedSquares to return when getMoveableSquares() is called
+     * @param threatenedSquares to return when getThreatenedSquares() is called
      */
     private Piece setUpMock(PieceType type, Colour colour, Square currentSquare, Set<Square> threatenedSquares) {
         Piece piece = mock(Piece.class);
         when(piece.getType()).thenReturn(type);
         when(piece.getColour()).thenReturn(colour);
         when(piece.getCurrentSquare()).thenReturn(currentSquare);
-        when(piece.getMoveableSquares()).thenReturn(threatenedSquares);
+        when(piece.getThreatenedSquares()).thenReturn(threatenedSquares);
         for (Square square : threatenedSquares) {
-            when(piece.canMoveTo(square)).thenReturn(true);
+            when(piece.doesThreaten(square)).thenReturn(true);
         }
         return piece;
     }

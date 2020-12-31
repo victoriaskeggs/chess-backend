@@ -3,7 +3,6 @@ package model.piece;
 import model.Colour;
 import model.Square;
 import model.piecestate.PiecesState;
-import model.util.MovesUtil;
 import model.PieceType;
 
 public class Bishop extends Piece {
@@ -13,7 +12,10 @@ public class Bishop extends Piece {
     }
 
     @Override
-    protected void updateMoveableSquares(PiecesState event) {
-        moveableSquares = MovesUtil.getMoveableSquaresForBishop(getCurrentSquare(), colour, event);
+    protected void updateThreatenedAndMoveableSquares(PiecesState event) {
+        movesCalculator.calculateMoveableAndThreatenedSquaresForBishop(getCurrentSquare(), colour, event);
+        threatenedSquares = movesCalculator.getThreatenedSquares();
+        moveableSquares = movesCalculator.getMoveableSquares();
+        movesCalculator.resetThreatenedAndMoveableSquares();
     }
 }

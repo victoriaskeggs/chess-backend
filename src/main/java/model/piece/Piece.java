@@ -6,6 +6,7 @@ import model.piecestate.PiecesState;
 import model.exception.ChessException;
 import model.piecestate.PiecesStateListener;
 import model.PieceType;
+import model.util.MovesCalculator;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -22,9 +23,19 @@ public abstract class Piece implements PiecesStateListener {
     protected Optional<Square> currentLocation;
 
     /**
+     * Calculates threatened and moveable squares
+     */
+    protected MovesCalculator movesCalculator;
+
+    /**
      * All the squares the piece could move to.
      */
     protected Set<Square> moveableSquares;
+
+    /**
+     * All the squares the piece can threaten/protect.
+     */
+    protected Set<Square> threatenedSquares;
 
     /**
      * Team the piece belongs to.
@@ -42,6 +53,8 @@ public abstract class Piece implements PiecesStateListener {
      */
     protected Piece(Colour colour, Square startingSquare, PieceType type) {
         this.colour = colour;
+        this.movesCalculator = new MovesCalculator();
+        this.threatenedSquares = new HashSet<>();
         this.moveableSquares = new HashSet<>();
         currentLocation = Optional.of(startingSquare);
         this.type = type;
@@ -82,10 +95,25 @@ public abstract class Piece implements PiecesStateListener {
     }
 
     /**
+     * @param square
+     * @return true if the piece threatens/protects the square, false otherwise
+     */
+    public boolean doesThreaten(Square square) {
+        return threatenedSquares.contains(square);
+    }
+
+    /**
      * @return the set of squares the piece can move to
      */
     public Set<Square> getMoveableSquares() {
         return moveableSquares;
+    }
+
+    /**
+     * @return the set of squares the piece threatens
+     */
+    public Set<Square> getThreatenedSquares() {
+        return threatenedSquares;
     }
 
     /**
@@ -121,10 +149,11 @@ public abstract class Piece implements PiecesStateListener {
     public void update(PiecesState event) {
         updateIsAlive(event);
         if (isAlive()) {
-            updateMoveableSquares(event);
+            updateThreatenedAndMoveableSquares(event);
             return;
         }
         moveableSquares = new HashSet<>();
+        threatenedSquares = new HashSet<>();
     }
 
     /**
@@ -142,10 +171,10 @@ public abstract class Piece implements PiecesStateListener {
     }
 
     /**
-     * Updates set of squares piece can move to based on the new state of the board.
+     * Updates set of squares piece can move to and threaten/protect based on the new state of the board.
      * @param event containing new state of the board
      */
-    protected abstract void updateMoveableSquares(PiecesState event);
+    protected abstract void updateThreatenedAndMoveableSquares(PiecesState event);
 
     /**
      * @return type of this chess piece, eg. knight

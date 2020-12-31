@@ -9,10 +9,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class EndgameHelper {
-
-    // TODO change piece.canMoveTo() to piece.threatens()
-    // TODO change piece.getMoveableSquares() to piece.getThreatenedSquares()
-
     /**
      * Factory to generate new pieces for checking endgame conditions
      */
@@ -36,7 +32,7 @@ public class EndgameHelper {
      */
     public boolean isInCheck(Piece king, Set<Piece> pieces) {
         for (Piece piece : pieces) {
-            if (piece.getColour() != king.getColour() && piece.canMoveTo(king.getCurrentSquare())) {
+            if (piece.getColour() != king.getColour() && piece.doesThreaten(king.getCurrentSquare())) {
                 return true;
             }
         }
@@ -54,7 +50,7 @@ public class EndgameHelper {
 
         for (Piece piece : pieces) {
             if (piece.getColour() == king.getColour()) {
-                for (Square moveableSquare : piece.getMoveableSquares()) {
+                for (Square moveableSquare : piece.getThreatenedSquares()) {
 
                     // Perform move
                     Move move = new Move(piece.getType(), piece.getColour(), piece.getCurrentSquare(), moveableSquare);

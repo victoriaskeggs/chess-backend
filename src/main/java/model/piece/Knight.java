@@ -3,7 +3,7 @@ package model.piece;
 import model.Colour;
 import model.Square;
 import model.piecestate.PiecesState;
-import model.util.MovesUtil;
+import model.util.MovesCalculator;
 import model.PieceType;
 
 public class Knight extends Piece {
@@ -13,7 +13,10 @@ public class Knight extends Piece {
     }
 
     @Override
-    protected void updateMoveableSquares(PiecesState event) {
-        moveableSquares = MovesUtil.getMoveableSquaresForKnight(getCurrentSquare(), colour, event);
+    protected void updateThreatenedAndMoveableSquares(PiecesState event) {
+        movesCalculator.calculateMoveableAndThreatenedSquaresForKnight(getCurrentSquare(), colour, event);
+        threatenedSquares = movesCalculator.getThreatenedSquares();
+        moveableSquares = movesCalculator.getMoveableSquares();
+        movesCalculator.resetThreatenedAndMoveableSquares();
     }
 }
