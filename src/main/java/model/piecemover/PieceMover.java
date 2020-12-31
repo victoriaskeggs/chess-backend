@@ -34,10 +34,27 @@ public class PieceMover {
      */
     public PieceMover(Map<PieceType, Set<Piece>> piecesByType) {
         previousMove = Optional.empty();
-        this.piecesByType = piecesByType;
+        this.piecesByType = new HashMap<>();
         this.piecesStateListeners = new HashSet<>();
-        piecesStateListeners.addAll(CollectionUtil.combine(piecesByType.values()));
+        addPieces(piecesByType);
+    }
+
+    /**
+     * Adds Pieces as under the control of this PieceMover
+     * @param piecesByType
+     */
+    public void addPieces(Map<PieceType, Set<Piece>> piecesByType) {
+        this.piecesByType.putAll(CollectionUtil.mergeMaps(this.piecesByType, piecesByType));
+        this.piecesStateListeners.addAll(CollectionUtil.combine(piecesByType.values()));
         firePiecesStateEvent();
+    }
+
+    /**
+     * Removes control of this PieceMover over all its Pieces
+     */
+    public void clearPieces() {
+        this.piecesByType.clear();
+        this.piecesStateListeners.clear();
     }
 
     /**

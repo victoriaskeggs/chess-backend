@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import testutil.CollectionUtil;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +51,36 @@ public class PieceMoverTest {
         piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2}));
         piecesByType.put(PieceType.KING, CollectionUtil.createSet(new Piece[] {mockKing}));
         pieceMover = new PieceMover(piecesByType);
+    }
+
+    @Test
+    public void testAddPieces() {
+        // Given
+        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
+
+        Piece mockPawn3 = mock(Piece.class);
+        setupPiece(mockPawn3, Colour.BLACK, Square.A7);
+        piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn3}));
+
+        Piece mockQueen = mock(Piece.class);
+        setupPiece(mockQueen, Colour.WHITE, Square.A4);
+        piecesByType.put(PieceType.QUEEN, CollectionUtil.createSet(new Piece[] {mockQueen}));
+
+        // When
+        pieceMover.addPieces(piecesByType);
+
+        // Then
+        Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockPawn3, mockQueen, mockKing});
+        assertEquals(expected, pieceMover.getPieces());
+    }
+
+    @Test
+    public void testClearPieces() {
+        // When
+        pieceMover.clearPieces();
+
+        // Then
+        assertEquals(new HashSet<>(), pieceMover.getPieces());
     }
 
     @Test
@@ -144,6 +174,8 @@ public class PieceMoverTest {
         Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockKing});
         assertEquals(expected, actual);
     }
+
+    // TODO tests for addPieces and tests for clearPieces()
 
     /**
      * Sets up a mock piece to return the provided colour and square when queried. Sets piece
