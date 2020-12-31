@@ -83,8 +83,10 @@ public class PieceMover {
 
         // Construct set of squares which contain kings
         Set<Square> kingLocations = new HashSet<>();
-        for (Piece king : piecesByType.get(PieceType.KING)) {
-            kingLocations.add(king.getCurrentSquare());
+        if (piecesByType.containsKey(PieceType.KING)) {
+            for (Piece king : piecesByType.get(PieceType.KING)) {
+                kingLocations.add(king.getCurrentSquare());
+            }
         }
 
         // Fire pieces update event to all listeners
