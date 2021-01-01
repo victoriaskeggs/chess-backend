@@ -222,7 +222,7 @@ public class EndgameHelperTest {
         // Set up piece factory to return same map of pieces when asked to copy those pieces
         when(pieceFactory.createCopyOfPieces(any())).thenAnswer(invocation -> piecesByType);
 
-        // Remember that white king is on E1 after king is mvoed
+        // Remember that white king is on E1 after king is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
 
         /**
