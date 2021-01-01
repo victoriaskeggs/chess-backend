@@ -5,7 +5,7 @@ import model.Move;
 import model.PieceType;
 import model.Square;
 import model.exception.ChessException;
-import model.piecemover.Board;
+import model.pieces.Board;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

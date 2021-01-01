@@ -1,4 +1,4 @@
-package model.piecemover;
+package model.pieces;
 
 import model.Colour;
 import model.Move;

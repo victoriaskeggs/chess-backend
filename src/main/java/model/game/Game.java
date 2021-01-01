@@ -3,7 +3,7 @@ package model.game;
 import model.Colour;
 import model.Move;
 import model.exception.ChessException;
-import model.piecemover.Board;
+import model.pieces.Board;
 
 public class Game {
 
