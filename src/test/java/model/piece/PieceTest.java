@@ -15,7 +15,6 @@ import static org.mockito.Mockito.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 public class PieceTest {
@@ -140,15 +139,10 @@ public class PieceTest {
         kill(fakePiece);
 
         // When
-        try {
-            fakePiece.getCurrentSquare();
-            fail();
+        Square square = fakePiece.getCurrentSquare();
 
-            // Then
-        } catch (RuntimeException exception) {
-            assertEquals(RuntimeException.class, exception.getClass());
-            assertEquals("Cannot get location of WHITE PAWN as piece is dead", exception.getMessage());
-        }
+        // Then
+        assertEquals(Square.NONE, square);
     }
 
     @SuppressWarnings("unchecked")
@@ -191,6 +185,6 @@ public class PieceTest {
     }
 
     private void kill(Piece piece) {
-        piece.currentLocation = Optional.empty();
+        piece.currentLocation = Square.NONE;
     }
 }

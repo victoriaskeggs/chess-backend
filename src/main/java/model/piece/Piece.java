@@ -9,7 +9,6 @@ import model.PieceType;
 import model.util.MovesCalculator;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -18,9 +17,9 @@ import java.util.Set;
 public abstract class Piece implements PiecesStateListener {
 
     /**
-     * Current location of the piece. Optional is empty if piece is not on the board.
+     * Current location of the piece. Location is SQUARE.None if piece is not on the board.
      */
-    protected Optional<Square> currentLocation;
+    protected Square currentLocation;
 
     /**
      * Calculates threatened and moveable squares
@@ -56,7 +55,7 @@ public abstract class Piece implements PiecesStateListener {
         this.movesCalculator = new MovesCalculator();
         this.threatenedSquares = new HashSet<>();
         this.moveableSquares = new HashSet<>();
-        currentLocation = Optional.of(startingSquare);
+        currentLocation = startingSquare;
         this.type = type;
     }
 
@@ -69,7 +68,7 @@ public abstract class Piece implements PiecesStateListener {
     public void moveTo(Square square) {
         if (isAlive()) {
             if (moveableSquares.contains(square)) {
-                currentLocation = Optional.of(square);
+                currentLocation = square;
                 return;
             }
             throw new ChessException(String.format("Not allowed to move %s %s to square %s.", getColour(), getType(), square)); // TODO log
@@ -83,7 +82,7 @@ public abstract class Piece implements PiecesStateListener {
      * @param square
      */
     public void moveToUnchecked(Square square) {
-        currentLocation = Optional.of(square);
+        currentLocation = square;
     }
 
     /**
@@ -120,18 +119,14 @@ public abstract class Piece implements PiecesStateListener {
      * @return true if the piece is currently part of the game, ie. has not been taken.
      */
     public boolean isAlive() {
-        return currentLocation.isPresent();
+        return currentLocation != Square.NONE;
     }
 
     /**
      * @return the square the piece is currently on
-     * @throws ChessException if the piece is not currently on a square, ie. has been taken
      */
     public Square getCurrentSquare() {
-        if (isAlive()) {
-            return currentLocation.get();
-        }
-        throw new RuntimeException(String.format("Cannot get location of %s %s as piece is dead", getColour(), getType())); // TODO log
+        return currentLocation;
     }
 
     /**
@@ -164,7 +159,7 @@ public abstract class Piece implements PiecesStateListener {
         if (isAlive()) {
             // This piece has been removed from the board if an enemy piece is in its square
             if (event.getColourLocations().get(getCurrentSquare()) != colour) {
-                currentLocation = Optional.empty();
+                currentLocation = Square.NONE;
             }
         }
         // TODO promotion?
@@ -203,10 +198,6 @@ public abstract class Piece implements PiecesStateListener {
 
     @Override
     public int hashCode() {
-        int hash = colour.hashCode() * 5 + type.hashCode() * 7;
-        if (currentLocation.isPresent()) {
-            hash += + 11 * currentLocation.get().hashCode();
-        }
-        return hash;
+        return colour.hashCode() * 5 + type.hashCode() * 7 + 11 * currentLocation.hashCode();
     }
 }
