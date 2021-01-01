@@ -14,7 +14,7 @@ public class Board {
     /**
      * Controls moving pieces on this board.
      */
-    private PieceMover pieceMover;
+    private PiecesMover piecesMover;
 
     /**
      * Figures out whether the game has ended or a king is under check
@@ -26,7 +26,7 @@ public class Board {
      */
     public Board() {
         endgameHelper = new EndgameHelper();
-        pieceMover = new PieceMover(new PieceFactory().createDefaultPieces());
+        piecesMover = new PiecesMover(new PieceFactory().createDefaultPieces());
     }
 
     /**
@@ -34,7 +34,7 @@ public class Board {
      * @param move
      */
     public void move(Move move) {
-        pieceMover.move(move);
+        piecesMover.move(move);
     }
 
     /**
@@ -45,7 +45,7 @@ public class Board {
      * @return
      */
     private Piece findPiece(PieceType type, Colour colour) {
-        Set<Piece> candidates = pieceMover.findPieces(type, colour);
+        Set<Piece> candidates = piecesMover.findPieces(type, colour);
         if (candidates.size() == 1) {
             return candidates.iterator().next();
         }
@@ -59,7 +59,7 @@ public class Board {
      */
     public boolean isChecked(Colour colour) {
         Piece king = findPiece(PieceType.KING, colour);
-        return endgameHelper.isInCheck(king, pieceMover.getPieces());
+        return endgameHelper.isInCheck(king, piecesMover.getPieces());
     }
 
     /**
@@ -69,7 +69,7 @@ public class Board {
      */
     public boolean isCheckmated(Colour colour) {
         Piece king = findPiece(PieceType.KING, colour);
-        return endgameHelper.isInCheckmate(king, pieceMover.getPieces());
+        return endgameHelper.isInCheckmate(king, piecesMover.getPieces());
     }
 
     /**
@@ -79,6 +79,6 @@ public class Board {
      */
     public boolean isStalemated(Colour colour) {
         Piece king = findPiece(PieceType.KING, colour);
-        return endgameHelper.isInStalemate(king, pieceMover.getPieces());
+        return endgameHelper.isInStalemate(king, piecesMover.getPieces());
     }
 }

@@ -17,11 +17,11 @@ public class EndgameHelper {
     /**
      * Makes test moves in a trial environment to check endgame conditions
      */
-    private PieceMover pieceMover;
+    private PiecesMover piecesMover;
 
     public EndgameHelper() {
         pieceFactory = new PieceFactory();
-        pieceMover = new PieceMover(new HashMap<>());
+        piecesMover = new PiecesMover(new HashMap<>());
     }
 
     /**
@@ -45,22 +45,22 @@ public class EndgameHelper {
      */
     private boolean canMove(Piece king, Set<Piece> pieces) {
         // Sets up PieceMover to control the provided pieces
-        pieceMover.clearPieces();
-        pieceMover.addPieces(pieceFactory.createCopyOfPieces(pieces));
+        piecesMover.clearPieces();
+        piecesMover.addPieces(pieceFactory.createCopyOfPieces(pieces));
 
-        for (Piece piece : pieceMover.getPieces()) {
+        for (Piece piece : piecesMover.getPieces()) {
             if (piece.getColour() == king.getColour()) {
                 for (Square moveableSquare : piece.getMoveableSquares()) {
 
                     // Perform move
                     Move move = new Move(piece.getType(), piece.getColour(), piece.getCurrentSquare(), moveableSquare);
-                    pieceMover.move(move);
+                    piecesMover.move(move);
 
                     // Check if move resulted in check
                     boolean isChecked = isInCheck(king, pieces);
 
                     // Undo move
-                    pieceMover.undoMove();
+                    piecesMover.undoMove();
 
                     // If move did not result in check, the team has an available move
                     if (!isChecked) {

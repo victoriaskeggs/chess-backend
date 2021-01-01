@@ -12,7 +12,7 @@ import util.CollectionUtil;
 
 import java.util.*;
 
-public class PieceMover {
+public class PiecesMover {
 
     /**
      * Previous move made
@@ -32,7 +32,7 @@ public class PieceMover {
     /**
      * Sets up a PieceMover with control over the provided pieces.
      */
-    public PieceMover(Map<PieceType, Set<Piece>> piecesByType) {
+    public PiecesMover(Map<PieceType, Set<Piece>> piecesByType) {
         previousMove = Optional.empty();
         this.piecesByType = new HashMap<>();
         this.piecesStateListeners = new HashSet<>();

@@ -38,7 +38,7 @@ public class EndgameHelperTest {
      * Dependency in EndgameHelper
      */
     @Mock(name = "pieceMover")
-    private PieceMover pieceMover;
+    private PiecesMover piecesMover;
 
     @BeforeEach
     public void setupMocks() {
@@ -65,7 +65,7 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2 // squares threatened by king
         }));
-        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, whiteKing}));
+        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, whiteKing}));
 
         // When
         boolean isInCheck = endgameHelper.isInCheck(whiteKing,
@@ -98,7 +98,7 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2 // squares threatened by king
         }));
-        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, whiteKing}));
+        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, whiteKing}));
 
         // When
         boolean isInCheck = endgameHelper.isInCheck(whiteKing,
@@ -141,7 +141,7 @@ public class EndgameHelperTest {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2
         }));
         // Set up piece mover to return these pieces
-        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle1, blackCastle2, blackPawn, whiteKing}));
+        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle1, blackCastle2, blackPawn, whiteKing}));
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
@@ -196,7 +196,7 @@ public class EndgameHelperTest {
         }));
 
         // Set up piece mover to return these pieces
-        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, blackPawn, blackKnight, whiteKing}));
+        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, blackPawn, blackKnight, whiteKing}));
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
@@ -239,7 +239,7 @@ public class EndgameHelperTest {
         }));
 
         // Set up piece mover to return these pieces
-        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
+        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.A1);
@@ -282,7 +282,7 @@ public class EndgameHelperTest {
         }));
 
         // Set up piece mover to return these pieces
-        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
+        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.A1);
@@ -349,13 +349,13 @@ public class EndgameHelperTest {
                 square[0] = move.getTo();
             }
             return null;
-        }).when(pieceMover).move(any());
+        }).when(piecesMover).move(any());
 
         // Set up pieceMover.undoMove() to reset where piece has been moved to
         doAnswer(invocation -> {
             square[0] = Square.E1;
             return null;
-        }).when(pieceMover).undoMove();
+        }).when(piecesMover).undoMove();
 
         // Set up piece.getCurrentSquare() to return the stored value of where the piece has been moved to
         when(piece.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> square[0]);

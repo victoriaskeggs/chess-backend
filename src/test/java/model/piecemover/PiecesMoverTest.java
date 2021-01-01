@@ -23,7 +23,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class PieceMoverTest {
+public class PiecesMoverTest {
     @Mock
     private Piece mockPawn1;
 
@@ -36,7 +36,7 @@ public class PieceMoverTest {
     /**
      * Object under test
      */
-    private PieceMover pieceMover;
+    private PiecesMover piecesMover;
 
     @BeforeEach
     public void setupFakePieceMover() {
@@ -50,7 +50,7 @@ public class PieceMoverTest {
         Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
         piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2}));
         piecesByType.put(PieceType.KING, CollectionUtil.createSet(new Piece[] {mockKing}));
-        pieceMover = new PieceMover(piecesByType);
+        piecesMover = new PiecesMover(piecesByType);
     }
 
     @Test
@@ -67,20 +67,20 @@ public class PieceMoverTest {
         piecesByType.put(PieceType.QUEEN, CollectionUtil.createSet(new Piece[] {mockQueen}));
 
         // When
-        pieceMover.addPieces(piecesByType);
+        piecesMover.addPieces(piecesByType);
 
         // Then
         Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockPawn3, mockQueen, mockKing});
-        assertEquals(expected, pieceMover.getPieces());
+        assertEquals(expected, piecesMover.getPieces());
     }
 
     @Test
     public void testClearPieces() {
         // When
-        pieceMover.clearPieces();
+        piecesMover.clearPieces();
 
         // Then
-        assertEquals(new HashSet<>(), pieceMover.getPieces());
+        assertEquals(new HashSet<>(), piecesMover.getPieces());
     }
 
     @Test
@@ -96,7 +96,7 @@ public class PieceMoverTest {
         when(mockPawn1.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> mockPawn1Square[0]);
 
         // When
-        pieceMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
+        piecesMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
 
         // Then
         verify(mockPawn1).moveTo(Square.B6);
@@ -123,10 +123,10 @@ public class PieceMoverTest {
         }).when(mockPawn1).moveToUnchecked(Square.B5);
         when(mockPawn1.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> mockPawn1Square[0]);
 
-        pieceMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
+        piecesMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
 
         // When
-        pieceMover.undoMove();
+        piecesMover.undoMove();
 
         // Then
         verify(mockPawn1).moveTo(Square.B6);
@@ -138,7 +138,7 @@ public class PieceMoverTest {
     public void testFindPieceWhenPieceDoesNotExist() {
         // When
         try {
-            pieceMover.findPiece(PieceType.PAWN, Colour.WHITE, Square.H2);
+            piecesMover.findPiece(PieceType.PAWN, Colour.WHITE, Square.H2);
         } catch (ChessException exception) {
 
             // Then
@@ -149,7 +149,7 @@ public class PieceMoverTest {
     @Test
     public void testFindPieceWhenPieceExists() {
         // When
-        Piece actual = pieceMover.findPiece(PieceType.KING, Colour.WHITE, Square.D1);
+        Piece actual = piecesMover.findPiece(PieceType.KING, Colour.WHITE, Square.D1);
 
         // Then
         assertEquals(mockKing, actual);
@@ -158,7 +158,7 @@ public class PieceMoverTest {
     @Test
     public void testFindPieces() {
         // When
-        Set<Piece> actual = pieceMover.findPieces(PieceType.PAWN, Colour.BLACK);
+        Set<Piece> actual = piecesMover.findPieces(PieceType.PAWN, Colour.BLACK);
 
         // Then
         Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn2});
@@ -168,7 +168,7 @@ public class PieceMoverTest {
     @Test
     public void testGetPieces() {
         // When
-        Set<Piece> actual = pieceMover.getPieces();
+        Set<Piece> actual = piecesMover.getPieces();
 
         // Then
         Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockKing});

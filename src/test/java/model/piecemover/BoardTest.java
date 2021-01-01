@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 public class BoardTest {
 
     @Mock(name = "pieceMover")
-    private PieceMover pieceMover;
+    private PiecesMover piecesMover;
 
     @Mock(name = "endgameHelper")
     private EndgameHelper endgameHelper;
@@ -46,13 +46,13 @@ public class BoardTest {
         board.move(move);
 
         // Then
-        verify(pieceMover).move(move);
+        verify(piecesMover).move(move);
     }
 
     @Test
     public void testIsCheckedWhenThereIsNoKing() {
         // Given
-        when(pieceMover.findPieces(PieceType.KING, Colour.WHITE)).thenReturn(new HashSet<>());
+        when(piecesMover.findPieces(PieceType.KING, Colour.WHITE)).thenReturn(new HashSet<>());
 
         // When
         try {
@@ -62,8 +62,8 @@ public class BoardTest {
 
             // Then
             assertEquals("There is not exactly one WHITE KING on the board.", exception.getMessage());
-            verify(pieceMover).findPieces(PieceType.KING, Colour.WHITE);
-            verify(pieceMover, never()).findPieces(PieceType.KING, Colour.BLACK);
+            verify(piecesMover).findPieces(PieceType.KING, Colour.WHITE);
+            verify(piecesMover, never()).findPieces(PieceType.KING, Colour.BLACK);
         }
     }
 
@@ -71,11 +71,11 @@ public class BoardTest {
     public void testIsCheckedWhenThereIsAKing() {
         // Given
         Piece mockKing = mock(Piece.class);
-        when(pieceMover.findPieces(PieceType.KING, Colour.WHITE))
+        when(piecesMover.findPieces(PieceType.KING, Colour.WHITE))
                 .thenReturn(CollectionUtil.createSet(new Piece[] {mockKing}));
 
         Set<Piece> mockPieces = CollectionUtil.createSet(new Piece[] {mock(Piece.class)});
-        when(pieceMover.getPieces()).thenReturn(mockPieces);
+        when(piecesMover.getPieces()).thenReturn(mockPieces);
 
         when(endgameHelper.isInCheck(mockKing, mockPieces)).thenReturn(true);
 
@@ -89,7 +89,7 @@ public class BoardTest {
     @Test
     public void testIsCheckmatedWhenThereIsNoKing() {
         // Given
-        when(pieceMover.findPieces(PieceType.KING, Colour.WHITE)).thenReturn(new HashSet<>());
+        when(piecesMover.findPieces(PieceType.KING, Colour.WHITE)).thenReturn(new HashSet<>());
 
         // When
         try {
@@ -99,8 +99,8 @@ public class BoardTest {
 
             // Then
             assertEquals("There is not exactly one WHITE KING on the board.", exception.getMessage());
-            verify(pieceMover).findPieces(PieceType.KING, Colour.WHITE);
-            verify(pieceMover, never()).findPieces(PieceType.KING, Colour.BLACK);
+            verify(piecesMover).findPieces(PieceType.KING, Colour.WHITE);
+            verify(piecesMover, never()).findPieces(PieceType.KING, Colour.BLACK);
         }
     }
 
@@ -108,11 +108,11 @@ public class BoardTest {
     public void testIsCheckmatedWhenThereIsAKing() {
         // Given
         Piece mockKing = mock(Piece.class);
-        when(pieceMover.findPieces(PieceType.KING, Colour.WHITE))
+        when(piecesMover.findPieces(PieceType.KING, Colour.WHITE))
                 .thenReturn(CollectionUtil.createSet(new Piece[] {mockKing}));
 
         Set<Piece> mockPieces = CollectionUtil.createSet(new Piece[] {mock(Piece.class)});
-        when(pieceMover.getPieces()).thenReturn(mockPieces);
+        when(piecesMover.getPieces()).thenReturn(mockPieces);
 
         when(endgameHelper.isInCheckmate(mockKing, mockPieces)).thenReturn(true);
 
@@ -126,7 +126,7 @@ public class BoardTest {
     @Test
     public void testIsStalematedWhenThereIsNoKing() {
         // Given
-        when(pieceMover.findPieces(PieceType.KING, Colour.WHITE)).thenReturn(new HashSet<>());
+        when(piecesMover.findPieces(PieceType.KING, Colour.WHITE)).thenReturn(new HashSet<>());
 
         // When
         try {
@@ -136,8 +136,8 @@ public class BoardTest {
 
             // Then
             assertEquals("There is not exactly one WHITE KING on the board.", exception.getMessage());
-            verify(pieceMover).findPieces(PieceType.KING, Colour.WHITE);
-            verify(pieceMover, never()).findPieces(PieceType.KING, Colour.BLACK);
+            verify(piecesMover).findPieces(PieceType.KING, Colour.WHITE);
+            verify(piecesMover, never()).findPieces(PieceType.KING, Colour.BLACK);
         }
     }
 
@@ -145,11 +145,11 @@ public class BoardTest {
     public void testIsStalematedWhenThereIsAKing() {
         // Given
         Piece mockKing = mock(Piece.class);
-        when(pieceMover.findPieces(PieceType.KING, Colour.WHITE))
+        when(piecesMover.findPieces(PieceType.KING, Colour.WHITE))
                 .thenReturn(CollectionUtil.createSet(new Piece[] {mockKing}));
 
         Set<Piece> mockPieces = CollectionUtil.createSet(new Piece[] {mock(Piece.class)});
-        when(pieceMover.getPieces()).thenReturn(mockPieces);
+        when(piecesMover.getPieces()).thenReturn(mockPieces);
 
         when(endgameHelper.isInStalemate(mockKing, mockPieces)).thenReturn(true);
 
