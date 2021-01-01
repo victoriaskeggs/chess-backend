@@ -48,9 +48,9 @@ public class EndgameHelper {
         pieceMover.clearPieces();
         pieceMover.addPieces(pieceFactory.createCopyOfPieces(pieces));
 
-        for (Piece piece : pieces) {
+        for (Piece piece : pieceMover.getPieces()) {
             if (piece.getColour() == king.getColour()) {
-                for (Square moveableSquare : piece.getThreatenedSquares()) {
+                for (Square moveableSquare : piece.getMoveableSquares()) {
 
                     // Perform move
                     Move move = new Move(piece.getType(), piece.getColour(), piece.getCurrentSquare(), moveableSquare);

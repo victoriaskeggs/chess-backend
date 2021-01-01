@@ -65,6 +65,7 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2 // squares threatened by king
         }));
+        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, whiteKing}));
 
         // When
         boolean isInCheck = endgameHelper.isInCheck(whiteKing,
@@ -97,6 +98,7 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2 // squares threatened by king
         }));
+        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, whiteKing}));
 
         // When
         boolean isInCheck = endgameHelper.isInCheck(whiteKing,
@@ -138,21 +140,10 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2
         }));
+        // Set up piece mover to return these pieces
+        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle1, blackCastle2, blackPawn, whiteKing}));
 
-        // Put mock pieces in sets of their types
-        Set<Piece> castles = new HashSet<>(Arrays.asList(new Piece[] {blackCastle1, blackCastle2}));
-        Set<Piece> pawns = new HashSet<>(Arrays.asList(new Piece[] {blackPawn}));
-        Set<Piece> kings = new HashSet<>(Arrays.asList(new Piece[] {whiteKing}));
-
-        // Map piece types to corresponding sets of mock pieces
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
-        piecesByType.put(PieceType.CASTLE, castles);
-        piecesByType.put(PieceType.PAWN, pawns);
-        piecesByType.put(PieceType.KING, kings);
-
-        // Set up piece factory to return same map of pieces when asked to copy those pieces
-        when(pieceFactory.createCopyOfPieces(any())).thenAnswer(invocation -> piecesByType);
-
+        // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
 
         /**
@@ -204,25 +195,10 @@ public class EndgameHelperTest {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2
         }));
 
-        // Put mock pieces in sets of their types
-        Set<Piece> pawns = new HashSet<>(Arrays.asList(new Piece[] {blackPawn}));
-        Set<Piece> castles = new HashSet<>(Arrays.asList(new Piece[] {blackCastle}));
-        Set<Piece> knights = new HashSet<>(Arrays.asList(new Piece[] {blackKnight}));
-        Set<Piece> bishops = new HashSet<>(Arrays.asList(new Piece[] {blackBishop}));
-        Set<Piece> kings = new HashSet<>(Arrays.asList(new Piece[] {whiteKing}));
+        // Set up piece mover to return these pieces
+        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, blackPawn, blackKnight, whiteKing}));
 
-        // Map piece types to corresponding sets of mock pieces
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
-        piecesByType.put(PieceType.PAWN, pawns);
-        piecesByType.put(PieceType.CASTLE, castles);
-        piecesByType.put(PieceType.KNIGHT, knights);
-        piecesByType.put(PieceType.BISHOP, bishops);
-        piecesByType.put(PieceType.KING, kings);
-
-        // Set up piece factory to return same map of pieces when asked to copy those pieces
-        when(pieceFactory.createCopyOfPieces(any())).thenAnswer(invocation -> piecesByType);
-
-        // Remember that white king is on E1 after king is moved
+        // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
 
         /**
@@ -262,18 +238,10 @@ public class EndgameHelperTest {
                 Square.A2, Square.B2, Square.B1
         }));
 
-        // Put mock pieces in sets of their types
-        Set<Piece> queens = new HashSet<>(Arrays.asList(new Piece[] {blackQueen}));
-        Set<Piece> kings = new HashSet<>(Arrays.asList(new Piece[] {whiteKing}));
+        // Set up piece mover to return these pieces
+        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
 
-        // Map piece types to corresponding sets of mock pieces
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
-        piecesByType.put(PieceType.QUEEN, queens);
-        piecesByType.put(PieceType.KING, kings);
-
-        // Set up piece factory to return same map of pieces when asked to copy those pieces
-        when(pieceFactory.createCopyOfPieces(any())).thenAnswer(invocation -> piecesByType);
-
+        // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.A1);
 
         /**
@@ -313,18 +281,10 @@ public class EndgameHelperTest {
                 Square.A2, Square.B2, Square.B1
         }));
 
-        // Put mock pieces in sets of their types
-        Set<Piece> queens = new HashSet<>(Arrays.asList(new Piece[] {blackQueen}));
-        Set<Piece> kings = new HashSet<>(Arrays.asList(new Piece[] {whiteKing}));
+        // Set up piece mover to return these pieces
+        when(pieceMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
 
-        // Map piece types to corresponding sets of mock pieces
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
-        piecesByType.put(PieceType.QUEEN, queens);
-        piecesByType.put(PieceType.KING, kings);
-
-        // Set up piece factory to return same map of pieces when asked to copy those pieces
-        when(pieceFactory.createCopyOfPieces(any())).thenAnswer(invocation -> piecesByType);
-
+        // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.A1);
 
         /**
@@ -349,12 +309,24 @@ public class EndgameHelperTest {
      */
     private Piece setUpMock(PieceType type, Colour colour, Square currentSquare, Set<Square> threatenedSquares) {
         Piece piece = mock(Piece.class);
+
+        // Set up basic piece characteristics
         when(piece.getType()).thenReturn(type);
         when(piece.getColour()).thenReturn(colour);
         when(piece.getCurrentSquare()).thenReturn(currentSquare);
+
+        // Set up threatened squares
         when(piece.getThreatenedSquares()).thenReturn(threatenedSquares);
         for (Square square : threatenedSquares) {
             when(piece.doesThreaten(square)).thenReturn(true);
+        }
+
+        // Set up moveable squares if piece is a king: assume moveable squares are threatened squares
+        if (type == PieceType.KING) {
+            when(piece.getMoveableSquares()).thenReturn(threatenedSquares);
+            for (Square square : threatenedSquares) {
+                when(piece.canMoveTo(square)).thenReturn(true);
+            }
         }
         return piece;
     }
