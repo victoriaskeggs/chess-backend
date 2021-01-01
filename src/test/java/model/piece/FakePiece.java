@@ -1,10 +1,11 @@
-package testutil;
+package model.piece;
 
 import model.Colour;
 import model.PieceType;
 import model.Square;
 import model.piece.Piece;
 import model.piecestate.PiecesState;
+import testutil.CollectionUtil;
 
 /**
  * A fake Piece subclass for testing Piece
