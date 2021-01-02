@@ -5,6 +5,7 @@ import model.Move;
 import model.PieceType;
 import model.Square;
 import model.exception.ChessException;
+import model.piece.PieceState;
 import model.pieces.Board;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ public class GameTest {
     @BeforeEach
     public void setupMocks() {
         MockitoAnnotations.initMocks(this);
-        move = new Move(PieceType.KNIGHT, Colour.WHITE, Square.B8, Square.A6);
+        move = new Move(new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.B8), Square.A6);
     }
 
     @Test

@@ -5,6 +5,7 @@ import model.Move;
 import model.PieceType;
 import model.exception.ChessException;
 import model.piece.Piece;
+import model.piece.PieceState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -32,9 +33,27 @@ public class BoardTest {
     @InjectMocks
     private Board board;
 
+    @Mock
+    private Piece mockKing;
+
+    @Mock
+    private PieceState mockKingState;
+
+    @Mock
+    private PiecesState mockPiecesState;
+
     @BeforeEach
     public void setupMocks() {
+        // Inject dependencies
         MockitoAnnotations.initMocks(this);
+
+        // Mock king for end-of-game checking
+        mockKingState = mock(PieceState.class);
+        when(mockKing.getState()).thenReturn(mockKingState);
+
+        // Mock state of pieces on board
+        mockPiecesState = mock(PiecesState.class);
+        when(piecesMover.generatePiecesState()).thenReturn(mockPiecesState);
     }
 
     @Test
@@ -70,14 +89,9 @@ public class BoardTest {
     @Test
     public void testIsCheckedWhenThereIsAKing() {
         // Given
-        Piece mockKing = mock(Piece.class);
         when(piecesMover.findPieces(PieceType.KING, Colour.WHITE))
                 .thenReturn(CollectionUtil.createSet(new Piece[] {mockKing}));
-
-        Set<Piece> mockPieces = CollectionUtil.createSet(new Piece[] {mock(Piece.class)});
-        when(piecesMover.getPieces()).thenReturn(mockPieces);
-
-        when(endgameHelper.isInCheck(mockKing, mockPieces)).thenReturn(true);
+        when(endgameHelper.isInCheck(mockKingState, mockPiecesState)).thenReturn(true);
 
         // When
         boolean isChecked = board.isChecked(Colour.WHITE);
@@ -107,14 +121,9 @@ public class BoardTest {
     @Test
     public void testIsCheckmatedWhenThereIsAKing() {
         // Given
-        Piece mockKing = mock(Piece.class);
         when(piecesMover.findPieces(PieceType.KING, Colour.WHITE))
                 .thenReturn(CollectionUtil.createSet(new Piece[] {mockKing}));
-
-        Set<Piece> mockPieces = CollectionUtil.createSet(new Piece[] {mock(Piece.class)});
-        when(piecesMover.getPieces()).thenReturn(mockPieces);
-
-        when(endgameHelper.isInCheckmate(mockKing, mockPieces)).thenReturn(true);
+        when(endgameHelper.isInCheckmate(mockKingState, mockPiecesState)).thenReturn(true);
 
         // When
         boolean isCheckmated = board.isCheckmated(Colour.WHITE);
@@ -144,14 +153,9 @@ public class BoardTest {
     @Test
     public void testIsStalematedWhenThereIsAKing() {
         // Given
-        Piece mockKing = mock(Piece.class);
         when(piecesMover.findPieces(PieceType.KING, Colour.WHITE))
                 .thenReturn(CollectionUtil.createSet(new Piece[] {mockKing}));
-
-        Set<Piece> mockPieces = CollectionUtil.createSet(new Piece[] {mock(Piece.class)});
-        when(piecesMover.getPieces()).thenReturn(mockPieces);
-
-        when(endgameHelper.isInStalemate(mockKing, mockPieces)).thenReturn(true);
+        when(endgameHelper.isInStalemate(mockKingState, mockPiecesState)).thenReturn(true);
 
         // When
         boolean isStalemated = board.isStalemated(Colour.WHITE);

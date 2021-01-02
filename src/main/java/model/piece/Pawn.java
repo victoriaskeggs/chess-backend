@@ -2,21 +2,20 @@ package model.piece;
 
 import model.Colour;
 import model.Square;
-import model.piecestate.PiecesState;
-import model.util.MovesCalculator;
 import model.PieceType;
+import model.pieces.PiecesState;
 
 public class Pawn extends Piece {
 
     public Pawn(Colour colour, Square startingSquare) {
-        super(colour, startingSquare, PieceType.PAWN);
+        super(new PieceState(PieceType.PAWN, colour, startingSquare));
     }
 
     @Override
     protected void updateThreatenedAndMoveableSquares(PiecesState event) {
-        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(getCurrentSquare(), colour, event);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(state, event);
         threatenedSquares = movesCalculator.getThreatenedSquares();
         moveableSquares = movesCalculator.getMoveableSquares();
-        movesCalculator.resetThreatenedAndMoveableSquares();
+        movesCalculator.reset();
     }
 }

@@ -4,8 +4,8 @@ import model.Move;
 import model.Square;
 import model.piece.Piece;
 import model.piece.PieceFactory;
+import model.piece.PieceState;
 
-import java.util.HashMap;
 import java.util.Set;
 
 public class EndgameHelper {
@@ -21,18 +21,31 @@ public class EndgameHelper {
 
     public EndgameHelper() {
         pieceFactory = new PieceFactory();
-        piecesMover = new PiecesMover(new HashMap<>());
+        piecesMover = new PiecesMover();
+    }
+
+    /**
+     * Checks whether a king is under check in the current state of the board.
+     * @param kingState
+     * @param piecesState
+     * @return true if the given king is under check
+     */
+    public boolean isInCheck(PieceState kingState, PiecesState piecesState) {
+        Piece king = pieceFactory.createPiece(kingState);
+        Set<Piece> pieces = pieceFactory.createPieces(piecesState);
+        return isInCheck(king, pieces);
     }
 
     /**
      * Checks whether a king is under check in the current state of the board.
      * @param king
-     * @param pieces on the board
+     * @param pieces
      * @return true if the given king is under check
      */
-    public boolean isInCheck(Piece king, Set<Piece> pieces) {
+    private boolean isInCheck(Piece king, Set<Piece> pieces) {
         for (Piece piece : pieces) {
-            if (piece.getColour() != king.getColour() && piece.doesThreaten(king.getCurrentSquare())) {
+            if (piece.getState().getColour() != king.getState().getColour() &&
+                    piece.doesThreaten(king.getState().getSquare())) {
                 return true;
             }
         }
@@ -41,19 +54,22 @@ public class EndgameHelper {
 
     /**
      * Checks if a team has any moves they can make, such that they will not be in check at the end of the move
-     * @param king of team
+     * @param kingState of team
      */
-    private boolean canMove(Piece king, Set<Piece> pieces) {
+    private boolean canMove(PieceState kingState, PiecesState piecesState) {
         // Sets up PieceMover to control the provided pieces
         piecesMover.clearPieces();
-        piecesMover.addPieces(pieceFactory.createCopyOfPieces(pieces));
+        piecesMover.addPieces(piecesState);
 
-        for (Piece piece : piecesMover.getPieces()) {
-            if (piece.getColour() == king.getColour()) {
+        Set<Piece> pieces = piecesMover.getPieces();
+        Piece king = piecesMover.findPiece(kingState);
+
+        for (Piece piece : pieces) {
+            if (piece.getState().getColour() == king.getState().getColour()) {
                 for (Square moveableSquare : piece.getMoveableSquares()) {
 
                     // Perform move
-                    Move move = new Move(piece.getType(), piece.getColour(), piece.getCurrentSquare(), moveableSquare);
+                    Move move = new Move(piece.getState(), moveableSquare);
                     piecesMover.move(move);
 
                     // Check if move resulted in check
@@ -74,17 +90,17 @@ public class EndgameHelper {
 
     /**
      * Checks whether a given team is checkmated in the current state of the board.
-     * @param king
-     * @param pieces on the board
+     * @param kingState
+     * @param piecesState
      * @return true if the given team is checkmated
      */
-    public boolean isInCheckmate(Piece king, Set<Piece> pieces) {
+    public boolean isInCheckmate(PieceState kingState, PiecesState piecesState) {
         // Check that the king is currently in check
-        if (!isInCheck(king, pieces)) {
+        if (!isInCheck(kingState, piecesState)) {
             return false;
         }
         // Check whether there is a move the team can make that will get them out of check
-        if (canMove(king, pieces)) {
+        if (canMove(kingState, piecesState)) {
             return false;
         }
         return true;
@@ -94,17 +110,17 @@ public class EndgameHelper {
      * Checks whether a given team is stalemated in the current state of the board. Checks if either:
      * - there is nowhere the given team can move
      * - there are not enough pieces on the board for either team to win
-     * @param king
-     * @param pieces on the board
+     * @param kingState
+     * @param piecesState
      * @return true if the given team is stalemated
      */
-    public boolean isInStalemate(Piece king, Set<Piece> pieces) {
+    public boolean isInStalemate(PieceState kingState, PiecesState piecesState) {
         // Check that the king is not in check
-        if (isInCheck(king, pieces)) {
+        if (isInCheck(kingState, piecesState)) {
             return false;
         }
         // For all possible moves the team can make, check all of them will put the team in check
-        if (canMove(king, pieces)) {
+        if (canMove(kingState, piecesState)) {
             return false;
         }
         // Check that there are enough pieces for one side to checkmate

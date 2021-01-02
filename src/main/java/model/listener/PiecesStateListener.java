@@ -1,4 +1,6 @@
-package model.piecestate;
+package model.listener;
+
+import model.pieces.PiecesState;
 
 public interface PiecesStateListener {
 

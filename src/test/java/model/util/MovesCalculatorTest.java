@@ -1,8 +1,10 @@
 package model.util;
 
 import model.Colour;
+import model.PieceType;
 import model.Square;
-import model.piecestate.PiecesState;
+import model.piece.PieceState;
+import model.pieces.PiecesState;
 import org.junit.jupiter.api.BeforeEach;
 import testutil.CollectionUtil;
 
@@ -12,7 +14,6 @@ import org.junit.jupiter.api.Timeout;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -48,13 +49,15 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsWhite() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.D5, Square.E5, Square.F5, Square.E4},
-                new Colour[] {Colour.BLACK, Colour.BLACK, Colour.WHITE, Colour.WHITE});
-        PiecesState state = new PiecesState(colourLocations, new HashSet<>());
+        PieceState pawnState = new PieceState(PieceType.PAWN, Colour.WHITE, Square.E4);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                        new PieceState(PieceType.PAWN, Colour.BLACK, Square.D5),
+                        new PieceState(PieceType.PAWN, Colour.BLACK, Square.E5),
+                        new PieceState(PieceType.PAWN, Colour.WHITE, Square.F5),
+                        pawnState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(Square.E4, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(pawnState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -86,14 +89,12 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsBlack() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.D5, Square.E6},
-                new Colour[] {Colour.WHITE, Colour.BLACK});
-        Set<Square> kingLocations = CollectionUtil.createSet(new Square[] {Square.D5});
-        PiecesState state = new PiecesState(colourLocations, kingLocations);
+        PieceState pawnState = new PieceState(PieceType.PAWN, Colour.BLACK, Square.E6);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.KING, Colour.WHITE, Square.D5), pawnState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(Square.E6, Colour.BLACK, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(pawnState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -122,12 +123,11 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsOnEdge() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.E8}, new Colour[] {Colour.WHITE});
-        PiecesState state = new PiecesState(colourLocations, new HashSet<>());
+        PieceState pawnState = new PieceState(PieceType.PAWN, Colour.WHITE, Square.E8);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {pawnState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(Square.E8, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(pawnState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -158,14 +158,15 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForCastle() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.D7, Square.B5, Square.D5, Square.F5},
-                new Colour[] {Colour.WHITE, Colour.BLACK, Colour.WHITE, Colour.BLACK});
-        Set<Square> kingLocations = CollectionUtil.createSet(new Square[] {Square.F5});
-        PiecesState state = new PiecesState(colourLocations, kingLocations);
+        PieceState castleState = new PieceState(PieceType.CASTLE, Colour.WHITE, Square.D5);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.D7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B5),
+                new PieceState(PieceType.KING, Colour.BLACK, Square.F5),
+                castleState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForCastle(Square.D5, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForCastle(castleState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -203,14 +204,18 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForKnight() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.D7, Square.B6, Square.A5, Square.B5, Square.D5, Square.A4},
-                new Colour[] {Colour.WHITE, Colour.BLACK, Colour.BLACK, Colour.BLACK, Colour.BLACK, Colour.WHITE});
-        Set<Square> kingLocations = CollectionUtil.createSet(new Square[] {Square.D7});
-        PiecesState state = new PiecesState(colourLocations, kingLocations);
+        PieceState knightState = new PieceState(PieceType.KNIGHT, Colour.BLACK, Square.B6);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.KING, Colour.WHITE, Square.D7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.A5),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B5),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.D5),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.A4),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B4),
+                knightState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForKnight(Square.B6, Colour.BLACK, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForKnight(knightState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -245,14 +250,15 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForBishop() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.B7, Square.C4, Square.D5, Square.G2},
-                new Colour[] {Colour.BLACK, Colour.WHITE, Colour.WHITE, Colour.BLACK});
-        Set<Square> kingLocations = CollectionUtil.createSet(new Square[] {Square.G2});
-        PiecesState state = new PiecesState(colourLocations, kingLocations);
+        PieceState bishopState = new PieceState(PieceType.BISHOP, Colour.WHITE, Square.D5);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.KING, Colour.BLACK, Square.G2),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B7),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.C4),
+                bishopState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForBishop(Square.D5, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForBishop(bishopState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -289,14 +295,17 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForQueen() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.D8, Square.B7, Square.F5, Square.C4, Square.D5, Square.G2},
-                new Colour[] {Colour.WHITE, Colour.BLACK, Colour.BLACK, Colour.WHITE, Colour.BLACK, Colour.WHITE});
-        Set<Square> kingLocations = CollectionUtil.createSet(new Square[] {Square.G2});
-        PiecesState state = new PiecesState(colourLocations, kingLocations);
+        PieceState queenState = new PieceState(PieceType.QUEEN, Colour.BLACK, Square.D5);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.KING, Colour.WHITE, Square.G2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.D8),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.F5),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.C4),
+                queenState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForQueen(Square.D5, Colour.BLACK, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForQueen(queenState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
@@ -334,13 +343,14 @@ public class MovesCalculatorTest {
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForKing() {
         // Given
-        Map<Square, Colour> colourLocations = CollectionUtil.createMap(
-                new Square[] {Square.C4, Square.C3}, new Colour[] {Colour.WHITE, Colour.BLACK});
-        Set<Square> kingLocations = CollectionUtil.createSet(new Square[] {Square.D4});
-        PiecesState state = new PiecesState(colourLocations, kingLocations);
+        PieceState kingState = new PieceState(PieceType.KING, Colour.WHITE, Square.D4);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.C4),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.C3),
+                kingState});
 
         // When
-        movesCalculator.calculateMoveableAndThreatenedSquaresForKing(Square.D4, Colour.WHITE, state);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForKing(kingState, new PiecesState(pieceStates));
         Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 

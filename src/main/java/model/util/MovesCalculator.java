@@ -1,13 +1,13 @@
 package model.util;
 
 import model.Colour;
+import model.PieceType;
 import model.Square;
-import model.piecestate.PiecesState;
+import model.piece.PieceState;
+import model.pieces.PiecesState;
 import util.CollectionUtil;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -17,6 +17,8 @@ public class MovesCalculator {
 
     private Set<Square> moveableSquares;
     private Set<Square> threatenedSquares;
+    private HashMap<Square, Colour> colourLocations;
+    private Set<Square> kingLocations;
 
     /**
      * Whether a piece is available for a piece to move into.
@@ -28,8 +30,7 @@ public class MovesCalculator {
     }
 
     public MovesCalculator() {
-        moveableSquares = new HashSet<>();
-        threatenedSquares = new HashSet<>();
+        reset();
     }
 
     /**
@@ -133,24 +134,22 @@ public class MovesCalculator {
     }
 
     /**
-     * Checks if a square is available for a piece to move into
+     * Checks if a square is available for a piece of the given colour to move into
      * @param square
      * @param colour
-     * @param piecesState
      * @return availability of the square
      */
-    private SquareAvailability evaluateSquareAvailability(
-            Square square, Colour colour, PiecesState piecesState) {
+    private SquareAvailability evaluateSquareAvailability(Square square, Colour colour) {
         // If the square is not occupied, it is empty
-        if (!piecesState.getColourLocations().containsKey(square)) {
+        if (!colourLocations.containsKey(square)) {
             return SquareAvailability.EMPTY;
         }
         // If the square is occupied by a king, it is blocked
-        if (piecesState.getKingLocations().contains(square)) {
+        if (kingLocations.contains(square)) {
             return SquareAvailability.BLOCKED;
         }
         // If the square is occupied by a piece (not a king) of the same colour, it is also blocked
-        if (piecesState.getColourLocations().get(square) == colour) {
+        if (colourLocations.get(square) == colour) {
             return SquareAvailability.BLOCKED;
         }
         // Otherwise the square is occupied by a piece of a different colour and therefore available
@@ -161,21 +160,20 @@ public class MovesCalculator {
      * Filters the candidate squares to those that have an allowed availability.
      * @param candidates to filter
      * @param colour of piece hoping to move to the square
-     * @param piecesState
      * @param allowed allowed availabilities
      * @return filtered set
      */
     private Set<Square> filterByAvailability(
-            Set<Optional<Square>> candidates, Colour colour, PiecesState piecesState,
-            Set<SquareAvailability> allowed) {
+            Set<Square> candidates, Colour colour, SquareAvailability... allowed) {
+        // Make allowed availabilities easy to search
+        Set<SquareAvailability> availabilities = new HashSet<>(Arrays.asList(allowed));
 
+        // Filter squares
         Set<Square> filtered = new HashSet<>();
-        for (Optional<Square> candidate : candidates) {
-            if (candidate.isPresent()) {
-                SquareAvailability availability = evaluateSquareAvailability(candidate.get(), colour, piecesState);
-                if (allowed.contains(availability)) {
-                    filtered.add(candidate.get());
-                }
+        for (Square candidate : candidates) {
+            SquareAvailability availability = evaluateSquareAvailability(candidate, colour);
+            if (availabilities.contains(availability)) {
+                filtered.add(candidate);
             }
         }
         return filtered;
@@ -184,34 +182,32 @@ public class MovesCalculator {
     /**
      * Retrieves the squares diagonally forwards of the given square from the perspective of a pawn of
      * the given colour.
-     * @param square
-     * @param colour
+     * @param pawnState
      * @return
      */
-    private Set<Optional<Square>> getPawnDiagonals(Square square, Colour colour) {
+    private Set<Optional<Square>> getPawnDiagonals(PieceState pawnState) {
         Set<Optional<Square>> diagonals = new HashSet<>();
-        if (colour == Colour.WHITE) {
-            diagonals.add(getNorthEast(square));
-            diagonals.add(getNorthWest(square));
+        if (pawnState.getColour() == Colour.WHITE) {
+            diagonals.add(getNorthEast(pawnState.getSquare()));
+            diagonals.add(getNorthWest(pawnState.getSquare()));
         } else {
-            diagonals.add(getSouthEast(square));
-            diagonals.add(getSouthWest(square));
+            diagonals.add(getSouthEast(pawnState.getSquare()));
+            diagonals.add(getSouthWest(pawnState.getSquare()));
         }
         return diagonals;
     }
 
     /**
      * Retrieves the square forwards of the given square from the perspective of a pawn of the given colour.
-     * @param square
-     * @param colour
+     * @param pawnState
      * @return
      */
-    private Set<Optional<Square>> getPawnForwards(Square square, Colour colour) {
+    private Set<Optional<Square>> getPawnForwards(PieceState pawnState) {
         Set<Optional<Square>> forward = new HashSet<>();
-        if (colour == Colour.WHITE) {
-            forward.add(getNorth(square));
+        if (pawnState.getColour() == Colour.WHITE) {
+            forward.add(getNorth(pawnState.getSquare()));
         } else {
-            forward.add(getSouth(square));
+            forward.add(getSouth(pawnState.getSquare()));
         }
         return forward;
     }
@@ -220,43 +216,34 @@ public class MovesCalculator {
      * Calculates all squares threatened and moveable by a pawn. Threatened squares are squares on an adjacent
      * diagonal in the direction the pawn is moving, while moveable squares are empty forward squares and unblocked
      * forwards diagonal squares.
-     * @param square
-     * @param colour
+     * @param pawnState
      * @param piecesState
      */
-    public void calculateMoveableAndThreatenedSquaresForPawn(
-            Square square, Colour colour, PiecesState piecesState) {
-
-        // Candidates for moving on a diagonal
-        Set<Optional<Square>> diagonals = getPawnDiagonals(square, colour);
+    public void calculateMoveableAndThreatenedSquaresForPawn(PieceState pawnState, PiecesState piecesState) {
+        generateStructures(piecesState);
 
         // Pawn can always threaten on a diagonal
-        threatenedSquares.addAll(CollectionUtil.getPresent(diagonals));
+        Set<Square> diagonals = CollectionUtil.getPresent(getPawnDiagonals(pawnState));
+        threatenedSquares.addAll(diagonals);
 
-        // Pawn can only move on a diagonal if there is an enemy (non-king) piece there
-        Set<SquareAvailability> availableAsSet = new HashSet<>();
-        availableAsSet.add(SquareAvailability.AVAILABLE);
-        moveableSquares.addAll(filterByAvailability(diagonals, Colour.WHITE, piecesState, availableAsSet));
+        // Pawn can move on a diagonal if there is an enemy (non-king) piece there
+        moveableSquares.addAll(filterByAvailability(diagonals, pawnState.getColour(), SquareAvailability.AVAILABLE));
 
-        // Candidate for moving forward
-        Set<Optional<Square>> forward = getPawnForwards(square, colour);
-
-        // Pawn can only move forward if the square is empty
-        Set<SquareAvailability> emptyAsSet = new HashSet<>();
-        emptyAsSet.add(SquareAvailability.EMPTY);
-        moveableSquares.addAll(filterByAvailability(forward, Colour.WHITE, piecesState, emptyAsSet));
+        // Pawn can move forwards if the square is empty
+        Set<Square> forward = CollectionUtil.getPresent(getPawnForwards(pawnState));
+        moveableSquares.addAll(filterByAvailability(forward, pawnState.getColour(), SquareAvailability.EMPTY));
     }
 
     /**
      * Calculates all squares in an L shape from the given square.
-     * @param square
-     * @param colour
+     * @param knightState
      * @param piecesState
      */
-    public void calculateMoveableAndThreatenedSquaresForKnight(
-            Square square, Colour colour, PiecesState piecesState) {
+    public void calculateMoveableAndThreatenedSquaresForKnight(PieceState knightState, PiecesState piecesState) {
+        generateStructures(piecesState);
 
         // Rows and columns of candidate moveable and threatened squares
+        Square square = knightState.getSquare();
         int[] rows = {square.getRowNumber()+2, square.getRowNumber()+2, square.getRowNumber()-2, square.getRowNumber()-2,
                 square.getRowNumber()+1, square.getRowNumber()-1, square.getRowNumber()+1, square.getRowNumber()-1};
         int[] columns = {square.getLetterNumber()+1, square.getLetterNumber()-1, square.getLetterNumber()+1, square.getLetterNumber()-1,
@@ -269,26 +256,25 @@ public class MovesCalculator {
         }
 
         // Knight can threaten all of these squares
-        threatenedSquares.addAll(CollectionUtil.getPresent(candidates));
+        Set<Square> presentCandidates = CollectionUtil.getPresent(candidates);
+        threatenedSquares.addAll(presentCandidates);
 
         // Knight can only move to those squares that are not blocked
-        Set<SquareAvailability> allowed = new HashSet<>();
-        allowed.add(SquareAvailability.AVAILABLE);
-        allowed.add(SquareAvailability.EMPTY);
-        moveableSquares.addAll(filterByAvailability(candidates, colour, piecesState, allowed));
+        moveableSquares.addAll(filterByAvailability(
+                presentCandidates, knightState.getColour(), SquareAvailability.AVAILABLE, SquareAvailability.EMPTY));
     }
 
     /**
      * Marks all adjacent squares as moveable and all adjacent squares that are not blocked by a piece of a different
      * colour as threatened.
-     * @param square
-     * @param colour
+     * @param kingState
      * @param piecesState
      */
-    public void calculateMoveableAndThreatenedSquaresForKing(
-            Square square, Colour colour, PiecesState piecesState) {
+    public void calculateMoveableAndThreatenedSquaresForKing(PieceState kingState, PiecesState piecesState) {
+        generateStructures(piecesState);
 
         // Build up a collection of candidate adjacent squares
+        Square square = kingState.getSquare();
         Set<Optional<Square>> candidates = new HashSet<>();
         for (int row = square.getRowNumber()-1; row <= square.getRowNumber()+1; row++) {
             for (int column = square.getLetterNumber()-1; column <= square.getLetterNumber()+1; column++) {
@@ -298,36 +284,32 @@ public class MovesCalculator {
         candidates.remove(Optional.of(square));
 
         // King can threaten all of those squares
-        threatenedSquares.addAll(CollectionUtil.getPresent(candidates));
+        Set<Square> presentCandidates = CollectionUtil.getPresent(candidates);
+        threatenedSquares.addAll(presentCandidates);
 
         // King can only move to those squares that are not blocked
-        Set<SquareAvailability> allowed = new HashSet<>();
-        allowed.add(SquareAvailability.AVAILABLE);
-        allowed.add(SquareAvailability.EMPTY);
-        moveableSquares.addAll(filterByAvailability(candidates, colour, piecesState, allowed));
+        moveableSquares.addAll(filterByAvailability(
+                presentCandidates, kingState.getColour(), SquareAvailability.AVAILABLE, SquareAvailability.EMPTY));
     }
 
     /**
      * Traverses all the squares along a given direction from the current square until the direction
      * is blocked. Empty and available squares are marked as moveable while empty, available and blocked
      * squares are all marked as threatened.
-     * @param square
      * @param getInDirection retrieves the square in the direction of a supplied square
-     * @param colour
-     * @param piecesState
+     * @param pieceState
      */
-    private void calculateThreatenedAndMoveableSquaresAlongDirection(
-            Square square, Function<Square, Optional<Square>> getInDirection, Colour colour,
-            PiecesState piecesState) {
+    private void calculateSquaresAlongDirection(
+            Function<Square, Optional<Square>> getInDirection, PieceState pieceState) {
 
-        Optional<Square> candidate = getInDirection.apply(square);
+        Optional<Square> candidate = getInDirection.apply(pieceState.getSquare());
 
         while (candidate.isPresent()) {
             // Piece can threaten empty, available and blocked squares
             threatenedSquares.add(candidate.get());
 
             SquareAvailability availability =
-                    evaluateSquareAvailability(candidate.get(), colour, piecesState);
+                    evaluateSquareAvailability(candidate.get(), pieceState.getColour());
             if (availability == SquareAvailability.BLOCKED) {
                 break;
             }
@@ -342,43 +324,62 @@ public class MovesCalculator {
     }
 
     /**
+     * Calls calculateSquaresAlongDirection() for each of the supplied direction functions
+     * @param pieceState
+     * @param getInDirections
+     */
+    private void calculateSquaresAlongDirections(
+            PieceState pieceState, Function<Square, Optional<Square>>... getInDirections) {
+        for (Function<Square, Optional<Square>> getInDirection : getInDirections) {
+            calculateSquaresAlongDirection(getInDirection, pieceState);
+        }
+    }
+
+    /**
      * Calculates all the squares reachable on a diagonal from the current square.
-     * @param square
-     * @param colour
+     * @param bishopState
      * @param piecesState
      */
-    public void calculateMoveableAndThreatenedSquaresForBishop(
-            Square square, Colour colour, PiecesState piecesState) {
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getNorthEast(sq), colour, piecesState);
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getNorthWest(sq), colour, piecesState);
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getSouthEast(sq), colour, piecesState);
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getSouthWest(sq), colour, piecesState);
+    public void calculateMoveableAndThreatenedSquaresForBishop(PieceState bishopState, PiecesState piecesState) {
+        generateStructures(piecesState);
+        calculateSquaresAlongDirections(bishopState, sq -> getNorthEast(sq), sq -> getNorthWest(sq),
+                sq -> getSouthEast(sq), sq -> getSouthWest(sq));
     }
 
     /**
      * Calculates all the squares reachable vertically and horizontally from the current square.
-     * @param square
-     * @param colour
+     * @param castleState
      * @param piecesState
      */
-    public void calculateMoveableAndThreatenedSquaresForCastle(
-            Square square, Colour colour, PiecesState piecesState) {
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getNorth(sq), colour, piecesState);
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getSouth(sq), colour, piecesState);
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getEast(sq), colour, piecesState);
-        calculateThreatenedAndMoveableSquaresAlongDirection(square, sq -> getWest(sq), colour, piecesState);
+    public void calculateMoveableAndThreatenedSquaresForCastle(PieceState castleState, PiecesState piecesState) {
+        generateStructures(piecesState);
+        calculateSquaresAlongDirections(castleState, sq -> getNorth(sq), sq -> getSouth(sq), sq -> getEast(sq),
+                sq -> getWest(sq));
     }
 
     /**
      * Calculates all the squares reachable vertically, horizontally and on a diagonal from the current square.
-     * @param square
-     * @param colour
+     * @param queenState
      * @param piecesState
      */
-    public void calculateMoveableAndThreatenedSquaresForQueen(
-            Square square, Colour colour, PiecesState piecesState) {
-        calculateMoveableAndThreatenedSquaresForBishop(square, colour, piecesState);
-        calculateMoveableAndThreatenedSquaresForCastle(square, colour, piecesState);
+    public void calculateMoveableAndThreatenedSquaresForQueen(PieceState queenState, PiecesState piecesState) {
+        generateStructures(piecesState);
+        calculateSquaresAlongDirections(queenState, sq -> getNorth(sq), sq -> getSouth(sq), sq -> getEast(sq),
+                sq -> getWest(sq), sq -> getNorthEast(sq), sq -> getNorthWest(sq), sq -> getSouthEast(sq),
+                sq -> getSouthWest(sq));
+    }
+
+    /**
+     * Populates colour locations map and king locations set based on the provided state of the pieces.
+     * @param piecesState
+     */
+    private void generateStructures(PiecesState piecesState) {
+        for (PieceState pieceState : piecesState.getPieceStates()) {
+            colourLocations.put(pieceState.getSquare(), pieceState.getColour());
+            if (pieceState.getType() == PieceType.KING) {
+                kingLocations.add(pieceState.getSquare());
+            }
+        }
     }
 
     /**
@@ -398,8 +399,10 @@ public class MovesCalculator {
     /**
      * Clears previous calculation of threatened and moveable squares
      */
-    public void resetThreatenedAndMoveableSquares() {
+    public void reset() {
         moveableSquares = new HashSet<>();
         threatenedSquares = new HashSet<>();
+        colourLocations = new HashMap<>();
+        kingLocations = new HashSet<>();
     }
 }

@@ -4,10 +4,9 @@ import model.Colour;
 import model.PieceType;
 import model.Square;
 import model.exception.ChessException;
-import model.piecestate.PiecesState;
+import model.pieces.PiecesState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
 import testutil.CollectionUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,7 +28,7 @@ public class PieceTest {
      */
     @BeforeEach
     public void setupFakePiece() {
-        fakePiece = new FakePiece(Colour.WHITE, Square.E1, PieceType.PAWN);
+        fakePiece = new FakePiece(new PieceState(PieceType.PAWN, Colour.WHITE, Square.E1));
         fakePiece.moveableSquares = CollectionUtil.createSet(new Square[] {Square. B6, Square.A8});;
     }
 
@@ -39,7 +38,7 @@ public class PieceTest {
         fakePiece.moveTo(Square.B6);
 
         // Then
-        assertEquals(Square.B6, fakePiece.getCurrentSquare());
+        assertEquals(Square.B6, fakePiece.getState().getSquare());
     }
 
     @Test
@@ -77,7 +76,7 @@ public class PieceTest {
         fakePiece.moveToUnchecked(Square.C5);
 
         // Then
-        assertEquals(Square.C5, fakePiece.getCurrentSquare());
+        assertEquals(Square.C5, fakePiece.getState().getSquare());
     }
 
     @Test
@@ -89,7 +88,7 @@ public class PieceTest {
         fakePiece.moveToUnchecked(Square.A8);
 
         // Then
-        assertEquals(Square.A8, fakePiece.getCurrentSquare());
+        assertEquals(Square.A8, fakePiece.getState().getSquare());
     }
 
     @Test
@@ -102,59 +101,11 @@ public class PieceTest {
         assertFalse(fakePiece.canMoveTo(Square.H8));
     }
 
-    @Test
-    public void testIsAliveWhenAlive() {
-        assertTrue(fakePiece.isAlive());
-    }
-
-    @Test
-    public void testIsAliveWhenDead() {
-        // Given
-        kill(fakePiece);
-
-        // When and then
-        assertFalse(fakePiece.isAlive());
-    }
-
-    @Test
-    public void testIsAliveWhenResurrected() {
-        // Given
-        kill(fakePiece);
-
-        // When
-        fakePiece.moveToUnchecked(Square.A8);
-
-        // Then
-        assertTrue(fakePiece.isAlive());
-    }
-
-    @Test
-    public void testGetCurrentSquareWhenAlive() {
-        assertEquals(Square.E1, fakePiece.getCurrentSquare());
-    }
-
-    @Test
-    public void testGetCurrentSquareWhenDead() {
-        // Given
-        kill(fakePiece);
-
-        // When
-        Square square = fakePiece.getCurrentSquare();
-
-        // Then
-        assertEquals(Square.NONE, square);
-    }
-
     @SuppressWarnings("unchecked")
     @Test
-    public void testUpdateWhenNotKilled() {
+    public void testUpdateWhenAlive() {
         // Given
         PiecesState state = mock(PiecesState.class);
-        when(state.getColourLocations()).thenAnswer((Answer<HashMap<Square, Colour>>) invocation -> {
-            HashMap<Square, Colour> colourLocations = mock(HashMap.class);
-            when(colourLocations.get(Square.E1)).thenReturn(Colour.WHITE); // non-enemy piece on current square
-            return colourLocations;
-        });
 
         // When
         fakePiece.update(state); // fake piece updates moveable squares to H2 and C7
@@ -162,29 +113,26 @@ public class PieceTest {
         // Then
         Set<Square> expected = CollectionUtil.createSet(new Square[] {Square.H2, Square.C7});
         assertEquals(expected, fakePiece.getMoveableSquares());
-        assertTrue(fakePiece.isAlive());
+        assertTrue(fakePiece.getState().isAlive());
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testUpdateWhenKilled() {
+    public void testUpdateWhenDead() {
         // Given
         PiecesState state = mock(PiecesState.class);
-        when(state.getColourLocations()).thenAnswer((Answer<HashMap<Square, Colour>>) invocation -> {
-            HashMap<Square, Colour> colourLocations = mock(HashMap.class);
-            when(colourLocations.get(Square.E1)).thenReturn(Colour.BLACK); // enemy piece on current square
-            return colourLocations;
-        });
+        kill(fakePiece);
 
         // When
         fakePiece.update(state);
 
         // Then
-        assertFalse(fakePiece.isAlive());
+        assertFalse(fakePiece.getState().isAlive());
         assertEquals(new HashSet<>(), fakePiece.getMoveableSquares());
+        assertEquals(new HashSet<>(), fakePiece.getThreatenedSquares());
     }
 
     private void kill(Piece piece) {
-        piece.currentLocation = Square.NONE;
+        piece.moveToUnchecked(Square.NONE);
     }
 }

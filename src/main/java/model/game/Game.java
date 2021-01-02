@@ -38,7 +38,7 @@ public class Game {
     public GameState move(Move move) {
         // Pre-move validation
         validateGameInProgress();
-        validateIsColoursTurn(move.getColour());
+        validateIsColoursTurn(move.getPieceState().getColour());
 
         // Make the move
         board.move(move);
@@ -48,7 +48,7 @@ public class Game {
 
         // Update game
         updateGameState();
-        turn = getOpponent(move.getColour());
+        turn = getOpponent(move.getPieceState().getColour());
         return state;
     }
 

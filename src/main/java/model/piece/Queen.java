@@ -2,21 +2,20 @@ package model.piece;
 
 import model.Colour;
 import model.Square;
-import model.piecestate.PiecesState;
-import model.util.MovesCalculator;
 import model.PieceType;
+import model.pieces.PiecesState;
 
 public class Queen extends Piece {
 
     public Queen(Colour colour, Square startingSquare) {
-        super(colour, startingSquare, PieceType.QUEEN);
+        super(new PieceState(PieceType.QUEEN, colour, startingSquare));
     }
 
     @Override
     protected void updateThreatenedAndMoveableSquares(PiecesState event) {
-        movesCalculator.calculateMoveableAndThreatenedSquaresForQueen(getCurrentSquare(), colour, event);
+        movesCalculator.calculateMoveableAndThreatenedSquaresForQueen(state, event);
         threatenedSquares = movesCalculator.getThreatenedSquares();
         moveableSquares = movesCalculator.getMoveableSquares();
-        movesCalculator.resetThreatenedAndMoveableSquares();
+        movesCalculator.reset();
     }
 }

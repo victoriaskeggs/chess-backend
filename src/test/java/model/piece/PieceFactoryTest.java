@@ -3,6 +3,7 @@ package model.piece;
 import model.Colour;
 import model.PieceType;
 import model.Square;
+import model.pieces.PiecesState;
 import org.junit.jupiter.api.Test;
 import testutil.CollectionUtil;
 
@@ -15,66 +16,143 @@ public class PieceFactoryTest {
     @Test
     public void testCreateDefaultPieces() {
         // When
-        Map<PieceType, Set<Piece>> actual = new PieceFactory().createDefaultPieces();
+        PiecesState actual = new PieceFactory().createDefaultPiecesState();
 
         // Then
-        Map<PieceType, Set<Piece>> expected = new HashMap<>();
-        Set<Piece> kings = CollectionUtil.createSet(
-                new King[] {new King(Colour.BLACK, Square.E8), new King(Colour.WHITE, Square.E1)});
-        expected.put(PieceType.KING, kings);
+        Set<PieceState> expectedPieceStates = new HashSet<>();
+        expectedPieceStates.addAll(Arrays.asList(
+                // Expected black pieces
+                new PieceState(PieceType.KING, Colour.BLACK, Square.E8),
+                new PieceState(PieceType.QUEEN, Colour.BLACK, Square.D8),
+                new PieceState(PieceType.BISHOP, Colour.BLACK, Square.C8),
+                new PieceState(PieceType.BISHOP, Colour.BLACK, Square.F8),
+                new PieceState(PieceType.KNIGHT, Colour.BLACK, Square.B8),
+                new PieceState(PieceType.KNIGHT, Colour.BLACK, Square.G8),
+                new PieceState(PieceType.CASTLE, Colour.BLACK, Square.A8),
+                new PieceState(PieceType.CASTLE, Colour.BLACK, Square.H8),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.A7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.C7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.D7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.E7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.F7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.G7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.H7),
 
-        Set<Piece> queens = CollectionUtil.createSet(
-                new Queen[] {new Queen(Colour.BLACK, Square.D8), new Queen(Colour.WHITE, Square.D1)});
-        expected.put(PieceType.QUEEN, queens);
+                // Expected white pieces
+                new PieceState(PieceType.KING, Colour.WHITE, Square.E1),
+                new PieceState(PieceType.QUEEN, Colour.WHITE, Square.D1),
+                new PieceState(PieceType.BISHOP, Colour.WHITE, Square.C1),
+                new PieceState(PieceType.BISHOP, Colour.WHITE, Square.F1),
+                new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.B1),
+                new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.G1),
+                new PieceState(PieceType.CASTLE, Colour.WHITE, Square.A1),
+                new PieceState(PieceType.CASTLE, Colour.WHITE, Square.H1),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.A2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.B2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.C2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.D2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.E2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.F2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.G2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.H2)));
 
-        Set<Piece> bishops = CollectionUtil.createSet(
-                new Bishop[] {new Bishop(Colour.BLACK, Square.C8), new Bishop(Colour.BLACK, Square.F8),
-                        new Bishop(Colour.WHITE, Square.C1), new Bishop(Colour.WHITE, Square.F1)});
-        expected.put(PieceType.BISHOP, bishops);
-
-        Set<Piece> knights = CollectionUtil.createSet(
-                new Knight[] {new Knight(Colour.BLACK, Square.B8), new Knight(Colour.BLACK, Square.G8),
-                        new Knight(Colour.WHITE, Square.B1), new Knight(Colour.WHITE, Square.G1)});
-        expected.put(PieceType.KNIGHT, knights);
-
-        Set<Piece> castles = CollectionUtil.createSet(
-                new Castle[] {new Castle(Colour.BLACK, Square.A8), new Castle(Colour.BLACK, Square.H8),
-                        new Castle(Colour.WHITE, Square.A1), new Castle(Colour.WHITE, Square.H1)});
-        expected.put(PieceType.CASTLE, castles);
-        
-        Set<Piece> pawns = CollectionUtil.createSet(
-                new Pawn[] {new Pawn(Colour.BLACK, Square.A7), new Pawn(Colour.BLACK, Square.B7),
-                        new Pawn(Colour.BLACK, Square.C7), new Pawn(Colour.BLACK, Square.D7),
-                        new Pawn(Colour.BLACK, Square.E7), new Pawn(Colour.BLACK, Square.F7),
-                        new Pawn(Colour.BLACK, Square.G7), new Pawn(Colour.BLACK, Square.H7),
-                        new Pawn(Colour.WHITE, Square.A2), new Pawn(Colour.WHITE, Square.B2),
-                        new Pawn(Colour.WHITE, Square.C2), new Pawn(Colour.WHITE, Square.D2),
-                        new Pawn(Colour.WHITE, Square.E2), new Pawn(Colour.WHITE, Square.F2),
-                        new Pawn(Colour.WHITE, Square.G2), new Pawn(Colour.WHITE, Square.H2)});
-        expected.put(PieceType.PAWN, pawns);
-
-        assertEquals(expected, actual);
+        assertEquals(expectedPieceStates, actual.getPieceStates());
     }
 
     @Test
-    public void testCreateCopyOfPieces() {
+    public void testCreatePieces() {
         // Given
-        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {
-                new King(Colour.BLACK, Square.E2),
-                new Bishop(Colour.WHITE, Square.A7)
+        Set<PieceState> pieces = CollectionUtil.createSet(new PieceState[] {
+                new PieceState(PieceType.KING, Colour.BLACK, Square.E2),
+                new PieceState(PieceType.BISHOP, Colour.WHITE, Square.A7)
         });
 
         // When
-        Map<PieceType, Set<Piece>> actual = new PieceFactory().createCopyOfPieces(pieces);
+        Set<Piece> actual = new PieceFactory().createPieces(new PiecesState(pieces));
 
         // Then
-        Set<Piece> kings = CollectionUtil.createSet(new King[] {new King(Colour.BLACK, Square.E2)});
-        Set<Piece> bishops = CollectionUtil.createSet(new Bishop[] {new Bishop(Colour.WHITE, Square.A7)});
+        Set<Piece> expectedPieces = CollectionUtil.createSet(new Piece[] {
+                new King(Colour.BLACK, Square.E2), new Bishop(Colour.WHITE, Square.A7)});
 
-        Map<PieceType, Set<Piece>> expected = new HashMap<>();
-        expected.put(PieceType.KING, kings);
-        expected.put(PieceType.BISHOP, bishops);
+        assertEquals(expectedPieces, actual);
+    }
 
-        assertEquals(expected, actual);
+    @Test
+    public void testCreatePieceWhenPieceIsPawn() {
+        // Given
+        PieceState expected = new PieceState(PieceType.PAWN, Colour.WHITE, Square.H2);
+
+        // When
+        Piece piece = new PieceFactory().createPiece(expected);
+
+        // Then
+        assertEquals(Pawn.class, piece.getClass());
+        assertEquals(expected, piece.getState());
+    }
+
+    @Test
+    public void testCreatePieceWhenPieceIsCastle() {
+        // Given
+        PieceState expected = new PieceState(PieceType.CASTLE, Colour.BLACK, Square.H2);
+
+        // When
+        Piece piece = new PieceFactory().createPiece(expected);
+
+        // Then
+        assertEquals(Castle.class, piece.getClass());
+        assertEquals(expected, piece.getState());
+    }
+
+    @Test
+    public void testCreatePieceWhenPieceIsKnight() {
+        // Given
+        PieceState expected = new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.H2);
+
+        // When
+        Piece piece = new PieceFactory().createPiece(expected);
+
+        // Then
+        assertEquals(Knight.class, piece.getClass());
+        assertEquals(expected, piece.getState());
+    }
+
+    @Test
+    public void testCreatePieceWhenPieceIsBishop() {
+        // Given
+        PieceState expected = new PieceState(PieceType.BISHOP, Colour.BLACK, Square.H2);
+
+        // When
+        Piece piece = new PieceFactory().createPiece(expected);
+
+        // Then
+        assertEquals(Bishop.class, piece.getClass());
+        assertEquals(expected, piece.getState());
+    }
+
+    @Test
+    public void testCreatePieceWhenPieceIsQueen() {
+        // Given
+        PieceState expected = new PieceState(PieceType.QUEEN, Colour.WHITE, Square.H2);
+
+        // When
+        Piece piece = new PieceFactory().createPiece(expected);
+
+        // Then
+        assertEquals(Queen.class, piece.getClass());
+        assertEquals(expected, piece.getState());
+    }
+
+    @Test
+    public void testCreatePieceWhenPieceIsKing() {
+        // Given
+        PieceState expected = new PieceState(PieceType.KING, Colour.BLACK, Square.H2);
+
+        // When
+        Piece piece = new PieceFactory().createPiece(expected);
+
+        // Then
+        assertEquals(King.class, piece.getClass());
+        assertEquals(expected, piece.getState());
     }
 }

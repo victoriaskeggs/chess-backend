@@ -26,7 +26,7 @@ public class Board {
      */
     public Board() {
         endgameHelper = new EndgameHelper();
-        piecesMover = new PiecesMover(new PieceFactory().createDefaultPieces());
+        piecesMover = new PiecesMover(new PieceFactory().createDefaultPiecesState());
     }
 
     /**
@@ -59,7 +59,7 @@ public class Board {
      */
     public boolean isChecked(Colour colour) {
         Piece king = findPiece(PieceType.KING, colour);
-        return endgameHelper.isInCheck(king, piecesMover.getPieces());
+        return endgameHelper.isInCheck(king.getState(), piecesMover.generatePiecesState());
     }
 
     /**
@@ -69,7 +69,7 @@ public class Board {
      */
     public boolean isCheckmated(Colour colour) {
         Piece king = findPiece(PieceType.KING, colour);
-        return endgameHelper.isInCheckmate(king, piecesMover.getPieces());
+        return endgameHelper.isInCheckmate(king.getState(), piecesMover.generatePiecesState());
     }
 
     /**
@@ -79,6 +79,6 @@ public class Board {
      */
     public boolean isStalemated(Colour colour) {
         Piece king = findPiece(PieceType.KING, colour);
-        return endgameHelper.isInStalemate(king, piecesMover.getPieces());
+        return endgameHelper.isInStalemate(king.getState(), piecesMover.generatePiecesState());
     }
 }

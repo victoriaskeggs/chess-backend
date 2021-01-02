@@ -1,10 +1,7 @@
 package model.piece;
 
-import model.Colour;
-import model.PieceType;
 import model.Square;
-import model.piece.Piece;
-import model.piecestate.PiecesState;
+import model.pieces.PiecesState;
 import testutil.CollectionUtil;
 
 /**
@@ -12,8 +9,8 @@ import testutil.CollectionUtil;
  */
 public class FakePiece extends Piece {
 
-    public FakePiece(Colour colour, Square square, PieceType type) {
-        super(colour, square, type);
+    public FakePiece(PieceState pieceState) {
+        super(pieceState);
     }
 
     @Override

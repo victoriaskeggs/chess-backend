@@ -3,9 +3,11 @@ package model.piece;
 import model.Colour;
 import model.Square;
 import model.PieceType;
-import util.CollectionUtil;
+import model.pieces.PiecesState;
 
 import java.util.*;
+
+import static model.PieceType.*;
 
 /**
  * Factory for creating chess pieces
@@ -13,89 +15,97 @@ import java.util.*;
 public class PieceFactory {
 
     /**
-     * Creates all the chess pieces in their default starting locations.
-     * @return default pieces in their starting locations, mapped by their type
+     * Creates the starting state of the chess board, including all the pieces in their starting locations
+     * @return default pieces in their starting locations
      */
-    public Map<PieceType, Set<Piece>> createDefaultPieces() {
-
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
+    public PiecesState createDefaultPiecesState() {
+        Set<PieceState> pieceStates = new HashSet<>();
 
         // Set up kings
-        Set<Piece> kings = new HashSet<>(Arrays.asList(
-                new King(Colour.BLACK, Square.E8), new King(Colour.WHITE, Square.E1)));
-        piecesByType.put(PieceType.KING, kings);
+        pieceStates.addAll(Arrays.asList(
+                new PieceState(KING, Colour.BLACK, Square.E8),
+                new PieceState(PieceType.KING, Colour.WHITE, Square.E1)));
 
         // Set up queens
-        Set<Piece> queens = new HashSet<>(Arrays.asList(
-                new Queen(Colour.BLACK, Square.D8), new Queen(Colour.WHITE, Square.D1)));
-        piecesByType.put(PieceType.QUEEN, queens);
+        pieceStates.addAll(Arrays.asList(
+                new PieceState(PieceType.QUEEN, Colour.BLACK, Square.D8),
+                new PieceState(PieceType.QUEEN, Colour.WHITE, Square.D1)));
 
         // Set up bishops
-        Set<Piece> bishops = new HashSet<>(Arrays.asList(
-                new Bishop(Colour.BLACK, Square.C8), new Bishop(Colour.BLACK, Square.F8),
-                new Bishop(Colour.WHITE, Square.C1), new Bishop(Colour.WHITE, Square.F1)));
-        piecesByType.put(PieceType.BISHOP, bishops);
+        pieceStates.addAll(Arrays.asList(
+                new PieceState(PieceType.BISHOP, Colour.BLACK, Square.C8),
+                new PieceState(PieceType.BISHOP, Colour.BLACK, Square.F8),
+                new PieceState(PieceType.BISHOP, Colour.WHITE, Square.C1),
+                new PieceState(PieceType.BISHOP, Colour.WHITE, Square.F1)));
 
         // Set up knights
-        Set<Piece> knights = new HashSet<>(Arrays.asList(
-                new Knight(Colour.BLACK, Square.B8), new Knight(Colour.BLACK, Square.G8),
-                new Knight(Colour.WHITE, Square.B1), new Knight(Colour.WHITE, Square.G1)));
-        piecesByType.put(PieceType.KNIGHT, knights);
+        pieceStates.addAll(Arrays.asList(
+                new PieceState(PieceType.KNIGHT, Colour.BLACK, Square.B8),
+                new PieceState(PieceType.KNIGHT, Colour.BLACK, Square.G8),
+                new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.B1),
+                new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.G1)));
 
         // Set up castles
-        Set<Piece> castles = new HashSet<>(Arrays.asList(
-                new Castle(Colour.BLACK, Square.A8), new Castle(Colour.BLACK, Square.H8),
-                new Castle(Colour.WHITE, Square.A1), new Castle(Colour.WHITE, Square.H1)));
-        piecesByType.put(PieceType.CASTLE, castles);
+        pieceStates.addAll(Arrays.asList(
+                new PieceState(PieceType.CASTLE, Colour.BLACK, Square.A8),
+                new PieceState(PieceType.CASTLE, Colour.BLACK, Square.H8),
+                new PieceState(PieceType.CASTLE, Colour.WHITE, Square.A1),
+                new PieceState(PieceType.CASTLE, Colour.WHITE, Square.H1)));
 
         // Set up pawns
-        Set<Piece> pawns = new HashSet<>(Arrays.asList(
-                new Pawn(Colour.BLACK, Square.A7), new Pawn(Colour.BLACK, Square.B7),
-                new Pawn(Colour.BLACK, Square.C7), new Pawn(Colour.BLACK, Square.D7),
-                new Pawn(Colour.BLACK, Square.E7), new Pawn(Colour.BLACK, Square.F7),
-                new Pawn(Colour.BLACK, Square.G7), new Pawn(Colour.BLACK, Square.H7),
-                new Pawn(Colour.WHITE, Square.A2), new Pawn(Colour.WHITE, Square.B2),
-                new Pawn(Colour.WHITE, Square.C2), new Pawn(Colour.WHITE, Square.D2),
-                new Pawn(Colour.WHITE, Square.E2), new Pawn(Colour.WHITE, Square.F2),
-                new Pawn(Colour.WHITE, Square.G2), new Pawn(Colour.WHITE, Square.H2)));
-        piecesByType.put(PieceType.PAWN, pawns);
+        pieceStates.addAll(Arrays.asList(
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.A7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.B7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.C7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.D7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.E7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.F7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.G7),
+                new PieceState(PieceType.PAWN, Colour.BLACK, Square.H7),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.A2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.B2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.C2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.D2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.E2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.F2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.G2),
+                new PieceState(PieceType.PAWN, Colour.WHITE, Square.H2)));
 
-        return piecesByType;
+        return new PiecesState(pieceStates);
     }
 
     /**
-     * Creates a deep copy of the provided chess pieces
-     * @param pieces
-     * @return copied pieces, mapped by their type
+     * Generates a set of Pieces in the provided state
+     * @param piecesState
+     * @return generated Pieces
      */
-    public Map<PieceType, Set<Piece>> createCopyOfPieces(Set<Piece> pieces) {
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
-        for (Piece piece : pieces) {
-            Piece copiedPiece = createCopyOf(piece);
-            CollectionUtil.addToMap(piecesByType, copiedPiece.getType(), copiedPiece);
+    public Set<Piece> createPieces(PiecesState piecesState) {
+        Set<Piece> pieces = new HashSet<>();
+        for (PieceState pieceState : piecesState.getPieceStates()) {
+            pieces.add(createPiece(pieceState));
         }
-        return piecesByType;
+        return pieces;
     }
 
     /**
-     * Creates a deep copy of the provided piece.
-     * @param piece
-     * @return copied piece
+     * Generates a Piece in the provided state
+     * @param state
+     * @return generated Piece
      */
-    private Piece createCopyOf(Piece piece) {
-        switch (piece.getType()) {
+    public Piece createPiece(PieceState state) {
+        switch (state.getType()) {
             case PAWN:
-                return new Pawn(piece.getColour(), piece.getCurrentSquare());
+                return new Pawn(state.getColour(), state.getSquare());
             case CASTLE:
-                return new Castle(piece.getColour(), piece.getCurrentSquare());
+                return new Castle(state.getColour(), state.getSquare());
             case KNIGHT:
-                return new Knight(piece.getColour(), piece.getCurrentSquare());
+                return new Knight(state.getColour(), state.getSquare());
             case BISHOP:
-                return new Bishop(piece.getColour(), piece.getCurrentSquare());
+                return new Bishop(state.getColour(), state.getSquare());
             case QUEEN:
-                return new Queen(piece.getColour(), piece.getCurrentSquare());
+                return new Queen(state.getColour(), state.getSquare());
             case KING:
-                return new King(piece.getColour(), piece.getCurrentSquare());
+                return new King(state.getColour(), state.getSquare());
             default:
                 throw new RuntimeException(); // TODO log and msg
         }

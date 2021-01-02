@@ -4,8 +4,9 @@ import model.Colour;
 import model.Move;
 import model.PieceType;
 import model.Square;
-import model.piece.PieceFactory;
 import model.piece.Piece;
+import model.piece.PieceFactory;
+import model.piece.PieceState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -58,20 +59,29 @@ public class EndgameHelperTest {
      */
     @Test
     public void testIsInCheckWhenInCheck() {
-        // Given
+        /**
+         * Given
+         */
+        // Set up mock pieces
         Piece blackCastle = setUpMock(PieceType.CASTLE, Colour.BLACK, Square.B1, CollectionUtil.createSet(new Square[] {
                 Square.A1, Square.C1, Square.D1, Square.E1 // squares threatened by castle
         }));
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2 // squares threatened by king
         }));
-        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, whiteKing}));
+        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {blackCastle, whiteKing});
 
-        // When
-        boolean isInCheck = endgameHelper.isInCheck(whiteKing,
-                CollectionUtil.createSet(new Piece[] {blackCastle, whiteKing}));
+        // Return mocked pieces when asked to create or get pieces for the state of the board
+        PiecesState piecesState = connectedPiecesToState(pieces);
 
-        // Then
+        /**
+         * When
+         */
+        boolean isInCheck = endgameHelper.isInCheck(whiteKing.getState(), piecesState);
+
+        /**
+         * Then
+         */
         assertTrue(isInCheck);
     }
 
@@ -88,7 +98,10 @@ public class EndgameHelperTest {
      */
     @Test
     public void testIsInCheckWhenNotInCheck() {
-        // Given
+        /**
+         * Given
+         */
+        // Set up mock pieces
         Piece blackCastle = setUpMock(PieceType.CASTLE, Colour.BLACK, Square.F3, CollectionUtil.createSet(new Square[] {
                 Square.A3, Square.B3, Square.C3, Square.D3, Square.E3, Square.G3, Square.H3, Square.F1, Square.F2
         }));
@@ -98,13 +111,19 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2 // squares threatened by king
         }));
-        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, whiteKing}));
+        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, whiteKing});
 
-        // When
-        boolean isInCheck = endgameHelper.isInCheck(whiteKing,
-                CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, whiteKing}));
+        // Return mocked pieces when asked to create or get pieces for the state of the board
+        PiecesState piecesState = connectedPiecesToState(pieces);
 
-        // Then
+        /**
+         * When
+         */
+        boolean isInCheck = endgameHelper.isInCheck(whiteKing.getState(), piecesState);
+
+        /**
+         * Then
+         */
         assertFalse(isInCheck);
     }
 
@@ -140,8 +159,10 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2
         }));
-        // Set up piece mover to return these pieces
-        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle1, blackCastle2, blackPawn, whiteKing}));
+        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {blackCastle1, blackCastle2, blackPawn, whiteKing});
+
+        // Return mocked pieces when asked to create or get pieces for the state of the board
+        PiecesState piecesState = connectedPiecesToState(pieces);
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
@@ -149,8 +170,7 @@ public class EndgameHelperTest {
         /**
          * When
          */
-        boolean isInCheckmate = endgameHelper.isInCheckmate(whiteKing,
-                CollectionUtil.createSet(new Piece[] {blackCastle1, blackCastle2, blackPawn, whiteKing}));
+        boolean isInCheckmate = endgameHelper.isInCheckmate(whiteKing.getState(), piecesState);
 
         /**
          * Then
@@ -194,9 +214,10 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.E1, CollectionUtil.createSet(new Square[] {
                 Square.D1, Square.F1, Square.D2, Square.E2, Square.F2
         }));
+        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, blackPawn, blackKnight, whiteKing});
 
-        // Set up piece mover to return these pieces
-        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, blackPawn, blackKnight, whiteKing}));
+        // Return mocked pieces when asked to create or get pieces for the state of the board
+        PiecesState piecesState = connectedPiecesToState(pieces);
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.E1);
@@ -204,8 +225,7 @@ public class EndgameHelperTest {
         /**
          * When
          */
-        boolean isInCheckmate = endgameHelper.isInCheckmate(whiteKing,
-                CollectionUtil.createSet(new Piece[] {blackCastle, blackBishop, blackPawn, blackKnight, whiteKing}));
+        boolean isInCheckmate = endgameHelper.isInCheckmate(whiteKing.getState(), piecesState);
 
         /**
          * Then
@@ -237,9 +257,10 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.A1, CollectionUtil.createSet(new Square[] {
                 Square.A2, Square.B2, Square.B1
         }));
+        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing});
 
-        // Set up piece mover to return these pieces
-        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
+        // Return mocked pieces when asked to create or get pieces for the state of the board
+        PiecesState piecesState = connectedPiecesToState(pieces);
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.A1);
@@ -247,8 +268,7 @@ public class EndgameHelperTest {
         /**
          * When
          */
-        boolean isInCheckmate = endgameHelper.isInStalemate(whiteKing,
-                CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
+        boolean isInCheckmate = endgameHelper.isInStalemate(whiteKing.getState(), piecesState);
 
         /**
          * Then
@@ -280,9 +300,10 @@ public class EndgameHelperTest {
         Piece whiteKing = setUpMock(PieceType.KING, Colour.WHITE, Square.A1, CollectionUtil.createSet(new Square[] {
                 Square.A2, Square.B2, Square.B1
         }));
+        Set<Piece> pieces = CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing});
 
-        // Set up piece mover to return these pieces
-        when(piecesMover.getPieces()).thenReturn(CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
+        // Return mocked pieces when asked to create or get pieces for the state of the board
+        PiecesState piecesState = connectedPiecesToState(pieces);
 
         // Set up king to return its current square after it is moved
         rememberPieceMove(whiteKing, PieceType.KING, Colour.WHITE, Square.A1);
@@ -290,8 +311,7 @@ public class EndgameHelperTest {
         /**
          * When
          */
-        boolean isInCheckmate = endgameHelper.isInStalemate(whiteKing,
-                CollectionUtil.createSet(new Piece[] {blackQueen, whiteKing}));
+        boolean isInCheckmate = endgameHelper.isInStalemate(whiteKing.getState(), piecesState);
 
         /**
          * Then
@@ -310,10 +330,11 @@ public class EndgameHelperTest {
     private Piece setUpMock(PieceType type, Colour colour, Square currentSquare, Set<Square> threatenedSquares) {
         Piece piece = mock(Piece.class);
 
-        // Set up basic piece characteristics
-        when(piece.getType()).thenReturn(type);
-        when(piece.getColour()).thenReturn(colour);
-        when(piece.getCurrentSquare()).thenReturn(currentSquare);
+        // Set up piece state
+        PieceState state = new PieceState(type, colour, currentSquare);
+        when(piece.getState()).thenReturn(state);
+        when(pieceFactory.createPiece(state)).thenReturn(piece);
+        when(piecesMover.findPiece(state)).thenReturn(piece);
 
         // Set up threatened squares
         when(piece.getThreatenedSquares()).thenReturn(threatenedSquares);
@@ -332,6 +353,19 @@ public class EndgameHelperTest {
     }
 
     /**
+     * Sets up piece factory and pieces mover to return mocked pieces when asked to create or get pieces given a
+     * PiecesState
+     * @param pieces to connect to PiecesState
+     * @return PiecesState connected to pieces
+     */
+    private PiecesState connectedPiecesToState(Set<Piece> pieces) {
+        PiecesState piecesState = mock(PiecesState.class);
+        when(pieceFactory.createPieces(piecesState)).thenReturn(pieces);
+        when(piecesMover.getPieces()).thenReturn(pieces);
+        return piecesState;
+    }
+
+    /**
      * Stores the square a piece is asked to move to when the PieceMover is asked to move the piece via
      * PieceMover.move(). Returns this new square as the piece's current location. Resets the piece's location to its
      * initial square when pieceMover.undoMove() is called.
@@ -345,7 +379,7 @@ public class EndgameHelperTest {
         final Square[] square = {initialLocation};
         doAnswer(invocation -> {
             Move move = invocation.getArgument(0);
-            if (move.getPieceType() == type && move.getColour() == colour) {
+            if (move.getPieceState().getType() == type && move.getPieceState().getColour() == colour) {
                 square[0] = move.getTo();
             }
             return null;
@@ -357,7 +391,7 @@ public class EndgameHelperTest {
             return null;
         }).when(piecesMover).undoMove();
 
-        // Set up piece.getCurrentSquare() to return the stored value of where the piece has been moved to
-        when(piece.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> square[0]);
+        // Set up piece.getState() to return the stored value of where the piece has been moved to
+        when(piece.getState()).thenAnswer((Answer<PieceState>) invocation -> new PieceState(type, colour, square[0]));
     }
 }

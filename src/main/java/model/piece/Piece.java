@@ -1,11 +1,9 @@
 package model.piece;
 
-import model.Colour;
 import model.Square;
-import model.piecestate.PiecesState;
 import model.exception.ChessException;
-import model.piecestate.PiecesStateListener;
-import model.PieceType;
+import model.listener.PiecesStateListener;
+import model.pieces.PiecesState;
 import model.util.MovesCalculator;
 
 import java.util.HashSet;
@@ -15,12 +13,6 @@ import java.util.Set;
  * Represents a chess piece.
  */
 public abstract class Piece implements PiecesStateListener {
-
-    /**
-     * Current location of the piece. Location is SQUARE.None if piece is not on the board.
-     */
-    protected Square currentLocation;
-
     /**
      * Calculates threatened and moveable squares
      */
@@ -37,26 +29,19 @@ public abstract class Piece implements PiecesStateListener {
     protected Set<Square> threatenedSquares;
 
     /**
-     * Team the piece belongs to.
+     * Current state of the piece.
      */
-    protected final Colour colour;
+    protected PieceState state;
 
     /**
-     * Type of the piece, eg. king, queen.
+     * Constructs a piece in a given state
+     * @param pieceState
      */
-    protected final PieceType type;
-
-    /**
-     * Constructs a piece at its starting location.
-     * @param colour of the piece
-     */
-    protected Piece(Colour colour, Square startingSquare, PieceType type) {
-        this.colour = colour;
+    protected Piece(PieceState pieceState) {
+        this.state = pieceState;
         this.movesCalculator = new MovesCalculator();
         this.threatenedSquares = new HashSet<>();
         this.moveableSquares = new HashSet<>();
-        currentLocation = startingSquare;
-        this.type = type;
     }
 
     /**
@@ -66,14 +51,14 @@ public abstract class Piece implements PiecesStateListener {
      * @throws ChessException if the piece is alive but not allowed to move to the square
      */
     public void moveTo(Square square) {
-        if (isAlive()) {
+        if (state.isAlive()) {
             if (moveableSquares.contains(square)) {
-                currentLocation = square;
+                moveToUnchecked(square);
                 return;
             }
-            throw new ChessException(String.format("Not allowed to move %s %s to square %s.", getColour(), getType(), square)); // TODO log
+            throw new ChessException(String.format("Not allowed to move %s %s to square %s.", state.getColour(), state.getType(), square)); // TODO log
         }
-        throw new ChessException(String.format("Not allowed to move %s %s as it is not alive.", getColour(), getType())); // TODO log
+        throw new ChessException(String.format("Not allowed to move %s %s as it is not alive.", state.getColour(), state.getType())); // TODO log
     }
 
     /**
@@ -82,7 +67,7 @@ public abstract class Piece implements PiecesStateListener {
      * @param square
      */
     public void moveToUnchecked(Square square) {
-        currentLocation = square;
+        state = new PieceState(state.getType(), state.getColour(), square);
     }
 
     /**
@@ -116,53 +101,24 @@ public abstract class Piece implements PiecesStateListener {
     }
 
     /**
-     * @return true if the piece is currently part of the game, ie. has not been taken.
+     * @return the current state of the piece
      */
-    public boolean isAlive() {
-        return currentLocation != Square.NONE;
-    }
-
-    /**
-     * @return the square the piece is currently on
-     */
-    public Square getCurrentSquare() {
-        return currentLocation;
-    }
-
-    /**
-     * @return the team the piece belongs to
-     */
-    public Colour getColour() {
-        return colour;
+    public PieceState getState() {
+        return state;
     }
 
     /**
      * Updates state of the piece based on new state of the board.
-     * @param event containing new state of the board
+     * @param state containing new state of the board
      */
     @Override
-    public void update(PiecesState event) {
-        updateIsAlive(event);
-        if (isAlive()) {
-            updateThreatenedAndMoveableSquares(event);
+    public void update(PiecesState state) {
+        if (this.state.isAlive()) {
+            updateThreatenedAndMoveableSquares(state);
             return;
         }
         moveableSquares = new HashSet<>();
         threatenedSquares = new HashSet<>();
-    }
-
-    /**
-     * Checks if piece is still alive based on the new state of the board.
-     * @param event containing new state of the board
-     */
-    private void updateIsAlive(PiecesState event) {
-        if (isAlive()) {
-            // This piece has been removed from the board if an enemy piece is in its square
-            if (event.getColourLocations().get(getCurrentSquare()) != colour) {
-                currentLocation = Square.NONE;
-            }
-        }
-        // TODO promotion?
     }
 
     /**
@@ -171,33 +127,16 @@ public abstract class Piece implements PiecesStateListener {
      */
     protected abstract void updateThreatenedAndMoveableSquares(PiecesState event);
 
-    /**
-     * @return type of this chess piece, eg. knight
-     */
-    public PieceType getType() {
-        return type;
-    }
-
-    /**
-     * Checks if this Piece is equal to another object. They are equal if the other object is a Piece with
-     * the same colour, type and current square as this Piece.
-     * @param other
-     * @return true if the piece is equal to other
-     */
     @Override
     public boolean equals(Object other) {
         if (other instanceof Piece) {
-            Piece otherPiece = (Piece) other;
-            if (otherPiece.colour == colour && otherPiece.type == type &&
-                    otherPiece.currentLocation.equals(currentLocation)) {
-                return true;
-            }
+            return state.equals(((Piece) other).state);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return colour.hashCode() * 5 + type.hashCode() * 7 + 11 * currentLocation.hashCode();
+        return state.hashCode();
     }
 }

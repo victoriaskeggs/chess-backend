@@ -6,72 +6,90 @@ import model.PieceType;
 import model.Square;
 import model.exception.ChessException;
 import model.piece.Piece;
-import model.piecestate.PiecesState;
+import model.piece.PieceFactory;
+import model.piece.PieceState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import testutil.CollectionUtil;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class PiecesMoverTest {
-    @Mock
+
+    private PieceState mockPawn1State;
+
+    private PieceState mockPawn2State;
+
+    private PieceState mockKingState;
+
     private Piece mockPawn1;
 
-    @Mock
     private Piece mockPawn2;
 
-    @Mock
     private Piece mockKing;
 
     /**
      * Object under test
      */
+    @InjectMocks
     private PiecesMover piecesMover;
+
+    @Mock(name = "pieceFactory")
+    private PieceFactory pieceFactory;
 
     @BeforeEach
     public void setupFakePieceMover() {
-        // Set up mocks to remove dependency on Piece
+        // Inject the PieceFactory mock
+        piecesMover = new PiecesMover();
         MockitoAnnotations.initMocks(this);
-        setupPiece(mockPawn1, Colour.WHITE, Square.B5);
-        setupPiece(mockPawn2, Colour.BLACK, Square.A3);
-        setupPiece(mockKing, Colour.WHITE, Square.D1);
 
-        // Set up fake PieceMover
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
-        piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2}));
-        piecesByType.put(PieceType.KING, CollectionUtil.createSet(new Piece[] {mockKing}));
-        piecesMover = new PiecesMover(piecesByType);
+        // Set up first mock pawn to return a state (white pawn at B5)
+        mockPawn1State = new PieceState(PieceType.PAWN, Colour.WHITE, Square.B5);
+        mockPawn1 = connectStateAndPiece(mockPawn1State);
+
+        // Set up second mock pawn to return a state (black pawn at A3)
+        mockPawn2State = new PieceState(PieceType.PAWN, Colour.BLACK, Square.A3);
+        mockPawn2 = connectStateAndPiece(mockPawn2State);
+
+        // Set up mock king to return a state (white king at D1)
+        mockKingState = new PieceState(PieceType.KING, Colour.WHITE, Square.D1);
+        mockKing = connectStateAndPiece(mockKingState);
+
+        // Add mock pieces to piece mover under test
+        PiecesState mockPiecesState = new PiecesState(
+                CollectionUtil.createSet(new PieceState[] {mockPawn1State, mockPawn2State, mockKingState}));
+        piecesMover.addPieces(mockPiecesState);
     }
 
     @Test
     public void testAddPieces() {
         // Given
-        Map<PieceType, Set<Piece>> piecesByType = new HashMap<>();
+        PieceState mockPawn3State = new PieceState(PieceType.PAWN, Colour.BLACK, Square.A7);
+        connectStateAndPiece(mockPawn3State);
 
-        Piece mockPawn3 = mock(Piece.class);
-        setupPiece(mockPawn3, Colour.BLACK, Square.A7);
-        piecesByType.put(PieceType.PAWN, CollectionUtil.createSet(new Piece[] {mockPawn3}));
+        PieceState mockQueenState = new PieceState(PieceType.QUEEN, Colour.WHITE, Square.A4);
+        connectStateAndPiece(mockQueenState);
 
-        Piece mockQueen = mock(Piece.class);
-        setupPiece(mockQueen, Colour.WHITE, Square.A4);
-        piecesByType.put(PieceType.QUEEN, CollectionUtil.createSet(new Piece[] {mockQueen}));
+        PiecesState piecesState = mock(PiecesState.class);
+        when(piecesState.getPieceStates()).thenReturn(
+                CollectionUtil.createSet(new PieceState[] {mockPawn3State, mockQueenState}));
 
         // When
-        piecesMover.addPieces(piecesByType);
+        piecesMover.addPieces(piecesState);
 
         // Then
-        Set<Piece> expected = CollectionUtil.createSet(new Piece[] {mockPawn1, mockPawn2, mockPawn3, mockQueen, mockKing});
-        assertEquals(expected, piecesMover.getPieces());
+        Set<PieceState> expected = CollectionUtil.createSet(
+                new PieceState[] {mockPawn1State, mockPawn2State, mockPawn3State, mockQueenState, mockKingState});
+        assertEquals(expected, piecesMover.generatePiecesState().getPieceStates());
     }
 
     @Test
@@ -80,7 +98,7 @@ public class PiecesMoverTest {
         piecesMover.clearPieces();
 
         // Then
-        assertEquals(new HashSet<>(), piecesMover.getPieces());
+        assertEquals(new HashSet<>(), piecesMover.generatePiecesState().getPieceStates());
     }
 
     @Test
@@ -93,18 +111,18 @@ public class PiecesMoverTest {
             mockPawn1Square[0] = Square.B6; // update square mock pawn is on
             return null;
         }).when(mockPawn1).moveTo(Square.B6);
-        when(mockPawn1.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> mockPawn1Square[0]);
+        when(mockPawn1.getState()).thenAnswer((Answer<PieceState>) invocation -> new PieceState(PieceType.PAWN, Colour.WHITE, mockPawn1Square[0]));
 
         // When
-        piecesMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
+        piecesMover.move(new Move(mockPawn1State, Square.B6));
 
         // Then
         verify(mockPawn1).moveTo(Square.B6);
 
-        Map<Square, Colour> colourLocations = getInitialColourLocations();
-        colourLocations.remove(Square.B5);
-        colourLocations.put(Square.B6, Colour.WHITE);
-        verifyUpdate(colourLocations, getInitialKingLocations());
+        Set<PieceState> expectedPieceStates = getInitialPieceStates();
+        expectedPieceStates.remove(mockPawn1State);
+        expectedPieceStates.add(new PieceState(PieceType.PAWN, Colour.WHITE, Square.B6));
+        verifyUpdate(expectedPieceStates);
     }
 
     @Test
@@ -121,9 +139,9 @@ public class PiecesMoverTest {
             mockPawn1Square[0] = Square.B5; // update square mock pawn is on
             return null;
         }).when(mockPawn1).moveToUnchecked(Square.B5);
-        when(mockPawn1.getCurrentSquare()).thenAnswer((Answer<Square>) invocation -> mockPawn1Square[0]);
+        when(mockPawn1.getState()).thenAnswer((Answer<PieceState>) invocation -> new PieceState(PieceType.PAWN, Colour.WHITE, mockPawn1Square[0]));
 
-        piecesMover.move(new Move(PieceType.PAWN, Colour.WHITE, Square.B5, Square.B6));
+        piecesMover.move(new Move(mockPawn1State, Square.B6));
 
         // When
         piecesMover.undoMove();
@@ -131,7 +149,18 @@ public class PiecesMoverTest {
         // Then
         verify(mockPawn1).moveTo(Square.B6);
         verify(mockPawn1).moveToUnchecked(Square.B5);
-        verifyUpdate(getInitialColourLocations(), getInitialKingLocations());
+        verifyUpdate(getInitialPieceStates());
+    }
+
+    @Test
+    public void testGeneratePiecesState() {
+        // When
+        Set<PieceState> actual = piecesMover.generatePiecesState().getPieceStates();
+
+        // Then
+        Set<PieceState> expected = CollectionUtil.createSet(
+                new PieceState[] {mockPawn1State, mockPawn2State, mockKingState});
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -175,42 +204,32 @@ public class PiecesMoverTest {
         assertEquals(expected, actual);
     }
 
-    // TODO tests for addPieces and tests for clearPieces()
-
     /**
-     * Sets up a mock piece to return the provided colour and square when queried. Sets piece
-     * to return true when queried isAlive().
-     * @param piece
-     * @param colour returned when queried getColour()
-     * @param square returned when queried getCurrentSquare()
+     * Creates a mock piece for the given state, sets up mock piece to return the state and sets up
+     * mock piece factory to return the piece given the state.
+     * @param state
+     * @return mocked piece
      */
-    private void setupPiece(Piece piece, Colour colour, Square square) {
-        when(piece.isAlive()).thenReturn(true);
-        when(piece.getCurrentSquare()).thenReturn(square);
-        when(piece.getColour()).thenReturn(colour);
+    private Piece connectStateAndPiece(PieceState state) {
+        Piece mockPiece = mock(Piece.class);
+        when(mockPiece.getState()).thenReturn(state);
+        when(pieceFactory.createPiece(state)).thenReturn(mockPiece);
+        return mockPiece;
     }
 
     /**
      * Verifies that the mock pieces received an update() call with the expected colour locations and king locations.
-     * @param expectedColourLocations
-     * @param expectedKingLocations
+     * @param expectedPieceStates
      */
-    private void verifyUpdate(Map<Square, Colour> expectedColourLocations, Set<Square> expectedKingLocations) {
+    private void verifyUpdate(Set<PieceState> expectedPieceStates) {
         for (Piece mock : new Piece[] {mockPawn1, mockPawn2, mockKing}) {
             ArgumentCaptor<PiecesState> piecesStateCaptor = ArgumentCaptor.forClass(PiecesState.class);
             verify(mock, atLeast(1)).update(piecesStateCaptor.capture());
-            assertEquals(expectedKingLocations, piecesStateCaptor.getValue().getKingLocations());
-            assertEquals(expectedColourLocations, piecesStateCaptor.getValue().getColourLocations());
+            assertEquals(expectedPieceStates, piecesStateCaptor.getValue().getPieceStates());
         }
     }
 
-    private Map<Square, Colour> getInitialColourLocations() {
-        return CollectionUtil.createMap(
-                new Square[] {Square.B5, Square.A3, Square.D1},
-                new Colour[] {Colour.WHITE, Colour.BLACK, Colour.WHITE});
-    }
-
-    private Set<Square> getInitialKingLocations() {
-        return CollectionUtil.createSet(new Square[] {Square.D1});
+    private Set<PieceState> getInitialPieceStates() {
+        return CollectionUtil.createSet(new PieceState[] {mockPawn1State, mockPawn2State, mockKingState});
     }
 }
