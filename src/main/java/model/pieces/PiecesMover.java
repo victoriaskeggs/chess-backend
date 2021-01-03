@@ -16,9 +16,9 @@ import java.util.*;
 public class PiecesMover {
 
     /**
-     * Previous move made
+     * Moves made on previous turn
      */
-    private Optional<Move> previousMove;
+    private Set<Move> previousMoves;
 
     /**
      * Pieces this piece mover can move, mapped by their type
@@ -47,7 +47,7 @@ public class PiecesMover {
      * Sets up a PieceMover with no control over any pieces.
      */
     public PiecesMover() {
-        previousMove = Optional.empty();
+        previousMoves = new HashSet<>();
         piecesByType = new HashMap<>();
         piecesStateListeners = new HashSet<>();
         pieceFactory = new PieceFactory();
@@ -87,7 +87,7 @@ public class PiecesMover {
         // Update square piece is on
         Piece piece = findPiece(move.getPieceState());
         piece.moveTo(move.getTo());
-        previousMove = Optional.of(move);
+        previousMoves.add(move);
 
         // Take any pieces on this square off the board
         ensureOnlyPieceIsOnSquare(piece, move.getTo());
@@ -97,34 +97,29 @@ public class PiecesMover {
     }
 
     /**
-     * Reverses the previous move. Two or more moves cannot be undone in a row.
+     * Reverses the moves made on the previous turn. Two or more moves cannot be undone in a row.
      */
     public void undoMove() {
-        if (previousMove.isPresent()) {
-            // Retrieve previously made move and square piece was on before moved
-            Move previous = previousMove.get();
-            Square previousSquare = previous.getPieceState().getSquare();
-
-            // Find piece on its new square
-            Piece piece = findPiece(previous.getPieceState().getType(), previous.getPieceState().getColour(), previous.getTo());
-
-            // Move piece to previous square and reset previous move
+        // Check if there are moves to be reversed
+        if (previousMoves.isEmpty()) {
+            throw new RuntimeException(); // TODO log and msg - cannot undo move
+        }
+        // Reverse the moves that occured on the previous turn
+        for (Move move : previousMoves) {
+            // Retrieve square piece was on before moved
+            Square previousSquare = move.getPieceState().getSquare();
+            Piece piece = findPiece(move.getPieceState().getType(), move.getPieceState().getColour(), move.getTo());
             piece.moveToUnchecked(previousSquare);
-            previousMove = Optional.empty();
-
-            // Take any other pieces on this square off the board
-            ensureOnlyPieceIsOnSquare(piece, previousSquare);
 
             // Update other listeners' view
             firePiecesStateUpdate();
-            return;
         }
-        throw new RuntimeException(); // TODO log and msg - cannot undo move
+        previousMoves.clear();
     }
 
     /**
      * Ensures only the provided piece is on the given square. Takes any other pieces on this square
-     * off the board.
+     * off the board and adds these moves to previousMoves.
      * @param piece
      * @param square
      */
@@ -132,7 +127,9 @@ public class PiecesMover {
         Set<Piece> piecesOnSquare = findPieces(square);
         piecesOnSquare.remove(piece);
         for (Piece otherPiece : piecesOnSquare) {
-            otherPiece.moveToUnchecked(Square.NONE);
+            Move move = new Move(otherPiece.getState(), Square.NONE);
+            otherPiece.moveToUnchecked(move.getTo());
+            previousMoves.add(move);
         }
     }
 
@@ -185,7 +182,7 @@ public class PiecesMover {
     public Piece findPiece(PieceType type, Colour colour, Square location) {
         Set<Piece> candidates = findPieces(type, colour);
         for (Piece candidate : candidates) {
-            if (candidate.getState().isAlive() && candidate.getState().getSquare() == location) {
+            if (candidate.getState().getSquare() == location) {
                 return candidate;
             }
         }
@@ -203,7 +200,7 @@ public class PiecesMover {
     }
 
     /**
-     * Finds all pieces under this mover's control (which are still alive) of the specified type and colour.
+     * Finds all pieces under this mover's control (including dead pieces) of the specified type and colour.
      * @param type
      * @param colour
      * @return set of pieces
@@ -211,7 +208,7 @@ public class PiecesMover {
     public Set<Piece> findPieces(PieceType type, Colour colour) {
         Set<Piece> pieces = new HashSet<>();
         for (Piece piece : piecesByType.get(type)) {
-            if (piece.getState().isAlive() && piece.getState().getColour() == colour) {
+            if (piece.getState().getColour() == colour) {
                 pieces.add(piece);
             }
         }

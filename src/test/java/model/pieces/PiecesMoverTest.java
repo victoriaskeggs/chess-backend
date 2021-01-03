@@ -104,51 +104,41 @@ public class PiecesMoverTest {
     @Test
     public void testMove() {
         // Given
-        when(mockPawn1.canMoveTo(Square.B6)).thenReturn(true);
-
-        final Square[] mockPawn1Square = {Square.B5};
-        doAnswer(invocation -> {
-            mockPawn1Square[0] = Square.B6; // update square mock pawn is on
-            return null;
-        }).when(mockPawn1).moveTo(Square.B6);
-        when(mockPawn1.getState()).thenAnswer((Answer<PieceState>) invocation -> new PieceState(PieceType.PAWN, Colour.WHITE, mockPawn1Square[0]));
+        when(mockPawn1.canMoveTo(Square.A3)).thenReturn(true);
+        rememberPieceMove(mockPawn1, PieceType.PAWN, Colour.WHITE, Square.B5);
+        rememberPieceMove(mockPawn2, PieceType.PAWN, Colour.BLACK, Square.A3);
 
         // When
-        piecesMover.move(new Move(mockPawn1State, Square.B6));
+        piecesMover.move(new Move(mockPawn1State, Square.A3));
 
         // Then
-        verify(mockPawn1).moveTo(Square.B6);
+        verify(mockPawn1).moveTo(Square.A3);
+        verify(mockPawn2).moveToUnchecked(Square.NONE);
 
         Set<PieceState> expectedPieceStates = getInitialPieceStates();
         expectedPieceStates.remove(mockPawn1State);
-        expectedPieceStates.add(new PieceState(PieceType.PAWN, Colour.WHITE, Square.B6));
+        expectedPieceStates.remove(mockPawn2State);
+        expectedPieceStates.add(new PieceState(PieceType.PAWN, Colour.WHITE, Square.A3));
+        expectedPieceStates.add(new PieceState(PieceType.PAWN, Colour.BLACK, Square.NONE));
         verifyUpdate(expectedPieceStates);
     }
 
     @Test
     public void testUndoMove() {
         // Given
-        when(mockPawn1.canMoveTo(Square.B6)).thenReturn(true);
-
-        final Square[] mockPawn1Square = {Square.B5};
-        doAnswer(invocation -> {
-            mockPawn1Square[0] = Square.B6; // update square mock pawn is on
-            return null;
-        }).when(mockPawn1).moveTo(Square.B6);
-        doAnswer(invocation -> {
-            mockPawn1Square[0] = Square.B5; // update square mock pawn is on
-            return null;
-        }).when(mockPawn1).moveToUnchecked(Square.B5);
-        when(mockPawn1.getState()).thenAnswer((Answer<PieceState>) invocation -> new PieceState(PieceType.PAWN, Colour.WHITE, mockPawn1Square[0]));
-
-        piecesMover.move(new Move(mockPawn1State, Square.B6));
+        when(mockPawn1.canMoveTo(Square.A3)).thenReturn(true);
+        rememberPieceMove(mockPawn1, PieceType.PAWN, Colour.WHITE, Square.B5);
+        rememberPieceMove(mockPawn2, PieceType.PAWN, Colour.BLACK, Square.A3);
+        piecesMover.move(new Move(mockPawn1State, Square.A3));
 
         // When
         piecesMover.undoMove();
 
         // Then
-        verify(mockPawn1).moveTo(Square.B6);
+        verify(mockPawn1).moveTo(Square.A3);
+        verify(mockPawn2).moveToUnchecked(Square.NONE);
         verify(mockPawn1).moveToUnchecked(Square.B5);
+        verify(mockPawn2).moveToUnchecked(Square.A3);
         verifyUpdate(getInitialPieceStates());
     }
 
@@ -225,11 +215,38 @@ public class PiecesMoverTest {
         for (Piece mock : new Piece[] {mockPawn1, mockPawn2, mockKing}) {
             ArgumentCaptor<PiecesState> piecesStateCaptor = ArgumentCaptor.forClass(PiecesState.class);
             verify(mock, atLeast(1)).update(piecesStateCaptor.capture());
-            assertEquals(expectedPieceStates, piecesStateCaptor.getValue().getPieceStates());
+            Set<PieceState> actualPieceStates = piecesStateCaptor.getValue().getPieceStates();
+            assertEquals(expectedPieceStates, actualPieceStates);
         }
     }
 
     private Set<PieceState> getInitialPieceStates() {
         return CollectionUtil.createSet(new PieceState[] {mockPawn1State, mockPawn2State, mockKingState});
+    }
+
+    /**
+     * Stores the square a piece is asked to move to when the Piece is asked to move via piece.move()
+     * and piece.moveToUnchecked(). Returns this new square as the piece's current location.
+     * @param piece
+     * @param type
+     * @param colour
+     * @param initialLocation
+     */
+    private void rememberPieceMove(Piece piece, PieceType type, Colour colour, Square initialLocation) {
+        // Set up piece.move() to store where piece has been moved to
+        final Square[] square = {initialLocation};
+        doAnswer(invocation -> {
+            square[0] = invocation.getArgument(0);
+            return null;
+        }).when(piece).moveTo(any());
+
+        // Set up piece.moveToUnchecked() to store where piece has been moved to
+        doAnswer(invocation -> {
+            square[0] = invocation.getArgument(0);
+            return null;
+        }).when(piece).moveToUnchecked(any());
+
+        // Set up piece.getState() to return the stored value of where the piece has been moved to
+        when(piece.getState()).thenAnswer((Answer<PieceState>) invocation -> new PieceState(type, colour, square[0]));
     }
 }
