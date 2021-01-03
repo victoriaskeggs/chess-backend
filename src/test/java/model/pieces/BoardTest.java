@@ -60,12 +60,15 @@ public class BoardTest {
     public void testMove() {
         // Given
         Move move = mock(Move.class);
+        PiecesState piecesState = mock(PiecesState.class);
+        when(piecesMover.move(move)).thenReturn(piecesState);
 
         // When
-        board.move(move);
+        PiecesState actualPiecesState = board.move(move);
 
         // Then
         verify(piecesMover).move(move);
+        assertEquals(piecesState, actualPiecesState);
     }
 
     @Test

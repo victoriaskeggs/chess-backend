@@ -32,9 +32,10 @@ public class Board {
     /**
      * Performs the provided move if allowed
      * @param move
+     * @return new state of the board
      */
-    public void move(Move move) {
-        piecesMover.move(move);
+    public PiecesState move(Move move) {
+        return piecesMover.move(move);
     }
 
     /**
