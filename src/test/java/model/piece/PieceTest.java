@@ -50,7 +50,7 @@ public class PieceTest {
 
             // Then
         } catch (ChessException exception) {
-            assertEquals("Not allowed to move WHITE PAWN to square C5.", exception.getMessage());
+            assertEquals("Not allowed to move WHITE PAWN on E1 to square C5.", exception.getMessage());
         }
     }
 
@@ -66,7 +66,7 @@ public class PieceTest {
 
             // Then
         } catch (ChessException exception) {
-            assertEquals("Not allowed to move WHITE PAWN as it is not alive.", exception.getMessage());
+            assertEquals("Not allowed to move dead WHITE PAWN.", exception.getMessage());
         }
     }
 

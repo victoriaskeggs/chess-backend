@@ -172,31 +172,31 @@ public class PiecesMover {
     }
 
     /**
-     * Finds the living piece of the given colour and type at a specified location.
+     * Finds the piece of the given colour and type at a specified location.
      * @param type
      * @param colour
      * @param location
-     * @throws ChessException if there is no living piece at the specified location of the given colour and type
+     * @throws ChessException if there is no piece at the specified location of the given colour and type
      * @return
      */
     public Piece findPiece(PieceType type, Colour colour, Square location) {
-        Set<Piece> candidates = findPieces(type, colour);
-        for (Piece candidate : candidates) {
-            if (candidate.getState().getSquare() == location) {
-                return candidate;
-            }
-        }
-        throw new ChessException(String.format("There is no %s %s at square %s", colour, type, location)); // TODO log
+        return findPiece(new PieceState(type, colour, location));
     }
 
     /**
-     * Finds the living piece of the given colour and type at a specified location.
+     * Finds the piece of the given colour and type at a specified location.
      * @param state
-     * @throws ChessException if there is no living piece at the specified location of the given colour and type
+     * @throws ChessException if there is no piece in the specified state
      * @return
      */
     public Piece findPiece(PieceState state) {
-        return findPiece(state.getType(), state.getColour(), state.getSquare());
+        Set<Piece> candidates = findPieces(state.getType(), state.getColour());
+        for (Piece candidate : candidates) {
+            if (candidate.getState().getSquare() == state.getSquare()) {
+                return candidate;
+            }
+        }
+        throw new ChessException(String.format("There is no %s", state)); // TODO log
     }
 
     /**

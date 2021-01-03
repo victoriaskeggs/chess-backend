@@ -161,7 +161,7 @@ public class PiecesMoverTest {
         } catch (ChessException exception) {
 
             // Then
-            assertEquals("There is no WHITE PAWN at square H2", exception.getMessage());
+            assertEquals("There is no WHITE PAWN on H2", exception.getMessage());
         }
     }
 

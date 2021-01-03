@@ -79,4 +79,12 @@ public class PieceState {
     public int hashCode() {
         return colour.hashCode() * 5 + type.hashCode() * 7 + 11 * square.hashCode();
     }
+
+    @Override
+    public String toString() {
+        if (isAlive()) {
+            return String.format("%s %s on %s", colour, type, square);
+        }
+        return String.format("dead %s %s", colour, type);
+    }
 }

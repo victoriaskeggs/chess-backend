@@ -56,9 +56,9 @@ public abstract class Piece implements PiecesStateListener {
                 moveToUnchecked(square);
                 return;
             }
-            throw new ChessException(String.format("Not allowed to move %s %s to square %s.", state.getColour(), state.getType(), square)); // TODO log
+            throw new ChessException(String.format("Not allowed to move %s to square %s.", state, square)); // TODO log
         }
-        throw new ChessException(String.format("Not allowed to move %s %s as it is not alive.", state.getColour(), state.getType())); // TODO log
+        throw new ChessException(String.format("Not allowed to move %s.", state)); // TODO log
     }
 
     /**

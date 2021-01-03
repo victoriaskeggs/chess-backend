@@ -39,4 +39,28 @@ public class PieceStateTest {
         assertEquals(state1Code, state2Code);
         assertTrue(areEqual);
     }
+
+    @Test
+    public void testToStringWhenAlive() {
+        // Given
+        PieceState state = new PieceState(PieceType.PAWN, Colour.BLACK, Square.E7);
+
+        // When
+        String stateString = state.toString();
+
+        // Then
+        assertEquals("BLACK PAWN on E7", stateString);
+    }
+
+    @Test
+    public void testToStringWhenDead() {
+        // Given
+        PieceState state = new PieceState(PieceType.KNIGHT, Colour.BLACK, Square.NONE);
+
+        // When
+        String stateString = state.toString();
+
+        // Then
+        assertEquals("dead BLACK KNIGHT", stateString);
+    }
 }
