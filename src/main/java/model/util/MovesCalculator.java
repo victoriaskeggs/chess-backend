@@ -198,18 +198,30 @@ public class MovesCalculator {
     }
 
     /**
-     * Retrieves the square forwards of the given square from the perspective of a pawn of the given colour.
-     * @param pawnState
+     * Retrieves the square directly forwards of the given square from the perspective of a pawn of the given colour.
+     * @param pieceState
      * @return
      */
-    private Set<Optional<Square>> getPawnForwards(PieceState pawnState) {
-        Set<Optional<Square>> forward = new HashSet<>();
-        if (pawnState.getColour() == Colour.WHITE) {
-            forward.add(getNorth(pawnState.getSquare()));
+    private Set<Square> getSquareDirectlyForwards(PieceState pieceState) {
+        Set<Optional<Square>> forwards = new HashSet<>();
+        if (pieceState.getColour() == Colour.WHITE) {
+            forwards.add(getNorth(pieceState.getSquare()));
         } else {
-            forward.add(getSouth(pawnState.getSquare()));
+            forwards.add(getSouth(pieceState.getSquare()));
         }
-        return forward;
+        return CollectionUtil.getPresent(forwards);
+    }
+
+    /**
+     * @param pawnState
+     * @return true if the pawn is in its starting row, ie. row 2 for white pieces and row 7 for black pieces
+     */
+    private boolean isPawnInStartingRow(PieceState pawnState) {
+        if (pawnState.getColour() == Colour.WHITE) {
+            return pawnState.getSquare().getRowNumber() == Square.A2.getRowNumber();
+        } else {
+            return pawnState.getSquare().getRowNumber() == Square.A7.getRowNumber();
+        }
     }
 
     /**
@@ -229,9 +241,20 @@ public class MovesCalculator {
         // Pawn can move on a diagonal if there is an enemy (non-king) piece there
         moveableSquares.addAll(filterByAvailability(diagonals, pawnState.getColour(), SquareAvailability.AVAILABLE));
 
-        // Pawn can move forwards if the square is empty
-        Set<Square> forward = CollectionUtil.getPresent(getPawnForwards(pawnState));
-        moveableSquares.addAll(filterByAvailability(forward, pawnState.getColour(), SquareAvailability.EMPTY));
+        // Pawn can move one step forwards if the square is empty
+        Set<Square> forward = getSquareDirectlyForwards(pawnState);
+        Set<Square> availableForward = filterByAvailability(forward, pawnState.getColour(), SquareAvailability.EMPTY);
+        moveableSquares.addAll(availableForward);
+
+        // Pawn can move two steps forward if it is on the starting row and both the squares one and two steps forwards
+        // are empty
+        if (isPawnInStartingRow(pawnState)) {
+            for (Square forwardsSquare : availableForward) {
+                PieceState forwardsState = new PieceState(pawnState.getType(), pawnState.getColour(), forwardsSquare);
+                Set<Square> twoForward = getSquareDirectlyForwards(forwardsState);
+                moveableSquares.addAll(filterByAvailability(twoForward, pawnState.getColour(), SquareAvailability.EMPTY));
+            }
+        }
     }
 
     /**
@@ -328,7 +351,8 @@ public class MovesCalculator {
      * @param pieceState
      * @param getInDirections
      */
-    private void calculateSquaresAlongDirections(
+    @SafeVarargs
+    private final void calculateSquaresAlongDirections(
             PieceState pieceState, Function<Square, Optional<Square>>... getInDirections) {
         for (Function<Square, Optional<Square>> getInDirection : getInDirections) {
             calculateSquaresAlongDirection(getInDirection, pieceState);
@@ -342,8 +366,8 @@ public class MovesCalculator {
      */
     public void calculateMoveableAndThreatenedSquaresForBishop(PieceState bishopState, PiecesState piecesState) {
         generateStructures(piecesState);
-        calculateSquaresAlongDirections(bishopState, sq -> getNorthEast(sq), sq -> getNorthWest(sq),
-                sq -> getSouthEast(sq), sq -> getSouthWest(sq));
+        calculateSquaresAlongDirections(bishopState, this::getNorthEast, this::getNorthWest, this::getSouthEast,
+                this::getSouthWest);
     }
 
     /**
@@ -353,8 +377,7 @@ public class MovesCalculator {
      */
     public void calculateMoveableAndThreatenedSquaresForCastle(PieceState castleState, PiecesState piecesState) {
         generateStructures(piecesState);
-        calculateSquaresAlongDirections(castleState, sq -> getNorth(sq), sq -> getSouth(sq), sq -> getEast(sq),
-                sq -> getWest(sq));
+        calculateSquaresAlongDirections(castleState, this::getNorth, this::getSouth, this::getEast, this::getWest);
     }
 
     /**
@@ -364,9 +387,8 @@ public class MovesCalculator {
      */
     public void calculateMoveableAndThreatenedSquaresForQueen(PieceState queenState, PiecesState piecesState) {
         generateStructures(piecesState);
-        calculateSquaresAlongDirections(queenState, sq -> getNorth(sq), sq -> getSouth(sq), sq -> getEast(sq),
-                sq -> getWest(sq), sq -> getNorthEast(sq), sq -> getNorthWest(sq), sq -> getSouthEast(sq),
-                sq -> getSouthWest(sq));
+        calculateSquaresAlongDirections(queenState, this::getNorth, this::getSouth, this::getEast, this::getWest,
+                this::getNorthEast, this::getNorthWest, this::getSouthEast, this::getSouthWest);
     }
 
     /**

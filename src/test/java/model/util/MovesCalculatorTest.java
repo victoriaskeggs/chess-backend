@@ -33,10 +33,10 @@ public class MovesCalculatorTest {
      * 8: |  |__|  |__|  |__|  |__|
      * 7: |__|  |__|  |__|  |__|  |
      * 6: |  |__|  |__|  |__|  |__|
-     * 5: |__|  |__|B |B_|W |__|  |
-     * 4: |  |__|  |__|WP|__|  |__|
-     * 3: |__|  |__|  |__|  |__|  |
-     * 2: |  |__|  |__|  |__|  |__|
+     * 5: |__|  |__|  |__|  |__|  |
+     * 4: |  |__|  |__|  |__|  |__|
+     * 3: |__|  |__|B |B_|W |__|  |
+     * 2: |  |__|  |__|WP|__|  |__|
      * 1: |__|  |__|  |__|  |__|  |
      *     A  B  C  D  E  F  G  H
      *
@@ -44,16 +44,17 @@ public class MovesCalculatorTest {
      * - can take an enemy piece on a diagonal
      * - cannot take a non-enemy piece on a diagonal
      * - cannot move forwards (as a white piece) if the square is blocked by a piece
+     * - cannot move two steps forwards if the square in front of it is not empty
      */
     @Test
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsWhite() {
         // Given
-        PieceState pawnState = new PieceState(PieceType.PAWN, Colour.WHITE, Square.E4);
+        PieceState pawnState = new PieceState(PieceType.PAWN, Colour.WHITE, Square.E2);
         Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {
-                        new PieceState(PieceType.PAWN, Colour.BLACK, Square.D5),
-                        new PieceState(PieceType.PAWN, Colour.BLACK, Square.E5),
-                        new PieceState(PieceType.PAWN, Colour.WHITE, Square.F5),
+                        new PieceState(PieceType.PAWN, Colour.BLACK, Square.D3),
+                        new PieceState(PieceType.PAWN, Colour.BLACK, Square.E3),
+                        new PieceState(PieceType.PAWN, Colour.WHITE, Square.F3),
                         pawnState});
 
         // When
@@ -62,10 +63,10 @@ public class MovesCalculatorTest {
         Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
 
         // Then
-        Set<Square> expectedMoveable = CollectionUtil.createSet(new Square[] {Square.D5});
+        Set<Square> expectedMoveable = CollectionUtil.createSet(new Square[] {Square.D3});
         assertEquals(expectedMoveable, actualMoveable);
 
-        Set<Square> expectedThreatened = CollectionUtil.createSet(new Square[] {Square.D5, Square.F5});
+        Set<Square> expectedThreatened = CollectionUtil.createSet(new Square[] {Square.D3, Square.F3});
         assertEquals(expectedThreatened, actualThreatened);
     }
 
@@ -81,6 +82,7 @@ public class MovesCalculatorTest {
      *     A  B  C  D  E  F  G  H
      *
      * Tests that a pawn (BP):
+     * - cannot move two steps forwards if not in starting row
      * - cannot move on the diagonal if the square is empty
      * - cannot take the enemy king on a diagonal
      * - can move forwards (as a black piece) if the square is empty
@@ -134,6 +136,40 @@ public class MovesCalculatorTest {
         // Then
         assertEquals(new HashSet<>(), actualMoveable);
         assertEquals(new HashSet<>(), actualThreatened);
+    }
+
+    /**
+     * 8: |  |__|  |__|  |__|  |__|
+     * 7: |__|  |__|  |__|  |__|  |
+     * 6: |  |__|  |__|  |__|  |__|
+     * 5: |__|  |__|  |__|  |__|  |
+     * 4: |  |__|  |__|  |__|  |__|
+     * 3: |__|  |__|  |__|  |__|  |
+     * 2: |  |__|  |__|WP|__|  |__|
+     * 1: |__|  |__|  |__|  |__|  |
+     *     A  B  C  D  E  F  G  H
+     *
+     * Tests that a pawn (WP) can move two steps forward when it is in its starting row and the two squares forwards
+     * of it are empty
+     */
+    @Test
+    @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
+    public void testCalculateThreatenedAndMoveableSquaresForPawnWhenPawnIsInFirstRow() {
+        // Given
+        PieceState pawnState = new PieceState(PieceType.PAWN, Colour.WHITE, Square.E2);
+        Set<PieceState> pieceStates = CollectionUtil.createSet(new PieceState[] {pawnState});
+
+        // When
+        movesCalculator.calculateMoveableAndThreatenedSquaresForPawn(pawnState, new PiecesState(pieceStates));
+        Set<Square> actualMoveable = movesCalculator.getMoveableSquares();
+        Set<Square> actualThreatened = movesCalculator.getThreatenedSquares();
+
+        // Then
+        Set<Square> expectedMoveable = CollectionUtil.createSet(new Square[] {Square.E3, Square.E4});
+        assertEquals(expectedMoveable, actualMoveable);
+
+        Set<Square> expectedThreatened = CollectionUtil.createSet(new Square[] {Square.D3, Square.F3});
+        assertEquals(expectedThreatened, actualThreatened);
     }
 
     /**
