@@ -109,7 +109,7 @@ public class PiecesMoverTest {
         rememberPieceMove(mockPawn2, PieceType.PAWN, Colour.BLACK, Square.A3);
 
         // When
-        piecesMover.move(new Move(mockPawn1State, Square.A3));
+        PiecesState actualPiecesState = piecesMover.move(new Move(mockPawn1State, Square.A3));
 
         // Then
         verify(mockPawn1).moveTo(Square.A3);
@@ -120,6 +120,8 @@ public class PiecesMoverTest {
         expectedPieceStates.remove(mockPawn2State);
         expectedPieceStates.add(new PieceState(PieceType.PAWN, Colour.WHITE, Square.A3));
         expectedPieceStates.add(new PieceState(PieceType.PAWN, Colour.BLACK, Square.NONE));
+
+        assertEquals(expectedPieceStates, actualPiecesState.getPieceStates());
         verifyUpdate(expectedPieceStates);
     }
 
@@ -132,13 +134,16 @@ public class PiecesMoverTest {
         piecesMover.move(new Move(mockPawn1State, Square.A3));
 
         // When
-        piecesMover.undoMove();
+        PiecesState actualPiecesState = piecesMover.undoMove();
 
         // Then
         verify(mockPawn1).moveTo(Square.A3);
         verify(mockPawn2).moveToUnchecked(Square.NONE);
         verify(mockPawn1).moveToUnchecked(Square.B5);
         verify(mockPawn2).moveToUnchecked(Square.A3);
+
+        Set<PieceState> expectedPieceStates = getInitialPieceStates();
+        assertEquals(expectedPieceStates, actualPiecesState.getPieceStates());
         verifyUpdate(getInitialPieceStates());
     }
 

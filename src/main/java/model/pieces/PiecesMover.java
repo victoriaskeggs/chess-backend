@@ -82,8 +82,9 @@ public class PiecesMover {
     /**
      * Moves a piece to a new square if allowed.
      * @param move
+     * @return new state of the board
      */
-    public void move(Move move) {
+    public PiecesState move(Move move) {
         // Update square piece is on
         Piece piece = findPiece(move.getPieceState());
         piece.moveTo(move.getTo());
@@ -94,12 +95,15 @@ public class PiecesMover {
 
         // Update other listeners' view
         firePiecesStateUpdate();
+
+        return generatePiecesState();
     }
 
     /**
      * Reverses the moves made on the previous turn. Two or more moves cannot be undone in a row.
+     * @return new state of the board
      */
-    public void undoMove() {
+    public PiecesState undoMove() {
         // Check if there are moves to be reversed
         if (previousMoves.isEmpty()) {
             throw new RuntimeException(); // TODO log and msg - cannot undo move
@@ -115,6 +119,8 @@ public class PiecesMover {
             firePiecesStateUpdate();
         }
         previousMoves.clear();
+
+        return generatePiecesState();
     }
 
     /**
