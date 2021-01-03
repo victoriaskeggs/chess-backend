@@ -7,7 +7,7 @@ import model.pieces.Board;
 
 public class Game {
 
-    private GameState state;
+    private GameStatus status;
     private Board board;
     private Colour turn;
 
@@ -15,7 +15,7 @@ public class Game {
      * Creates a new game
      */
     public Game() {
-        state = GameState.IN_PROGRESS;
+        status = GameStatus.IN_PROGRESS;
         board = new Board();
         turn = Colour.WHITE;
     }
@@ -23,8 +23,8 @@ public class Game {
     /**
      * Creates a game already in progress
      */
-    public Game(GameState state, Board board, Colour turn) {
-        this.state = state;
+    public Game(GameStatus status, Board board, Colour turn) {
+        this.status = status;
         this.board = board;
         this.turn = turn;
     }
@@ -35,7 +35,7 @@ public class Game {
      * @return new state of the game
      * @throws ChessException if move is not allowed
      */
-    public GameState move(Move move) {
+    public GameStatus move(Move move) {
         // Pre-move validation
         validateGameInProgress();
         validateIsColoursTurn(move.getPieceState().getColour());
@@ -47,16 +47,16 @@ public class Game {
         validateCurrentColourNotInCheck();
 
         // Update game
-        updateGameState();
+        updateGameStatus();
         turn = getOpponent(move.getPieceState().getColour());
-        return state;
+        return status;
     }
 
     /**
      * @throws ChessException if a game is not in progress
      */
     private void validateGameInProgress() {
-        if (state == GameState.OVER_STALEMATE || state == GameState.OVER_CHECKMATE) {
+        if (status == GameStatus.OVER_STALEMATE || status == GameStatus.OVER_CHECKMATE) {
             throw new ChessException("Cannot make a move as game is over."); // TODO log
         }
     }
@@ -84,21 +84,21 @@ public class Game {
      * Checks if the board is in a state of check, checkmate or stalemate and updates the game state
      * accordingly
      */
-    private void updateGameState() {
+    private void updateGameStatus() {
         Colour opponent = getOpponent(turn);
         if (board.isCheckmated(opponent)) {
-            state = GameState.OVER_CHECKMATE;
+            status = GameStatus.OVER_CHECKMATE;
             return;
         }
         if (board.isStalemated(opponent)) {
-            state = GameState.OVER_STALEMATE;
+            status = GameStatus.OVER_STALEMATE;
             return;
         }
         if (board.isChecked(opponent)) {
-            state = GameState.IN_PROGRESS_CHECK;
+            status = GameStatus.IN_PROGRESS_CHECK;
             return;
         }
-        state = GameState.IN_PROGRESS;
+        status = GameStatus.IN_PROGRESS;
     }
 
     /**

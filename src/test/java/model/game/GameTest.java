@@ -32,7 +32,7 @@ public class GameTest {
     @Test
     public void testMoveWhenNotColoursTurn() {
         // Given
-        Game game = new Game(GameState.IN_PROGRESS, board, Colour.BLACK);
+        Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.BLACK);
 
         // When
         try {
@@ -48,7 +48,7 @@ public class GameTest {
     @Test
     public void testMoveWhenGameAlreadyOver() {
         // Given
-        Game game = new Game(GameState.OVER_CHECKMATE, board, Colour.WHITE);
+        Game game = new Game(GameStatus.OVER_CHECKMATE, board, Colour.WHITE);
 
         // When
         try {
@@ -65,7 +65,7 @@ public class GameTest {
     public void testMoveWhenColourPuttingThemselvesIntoCheck() {
         // Given
         when(board.isChecked(Colour.WHITE)).thenReturn(true);
-        Game game = new Game(GameState.IN_PROGRESS, board, Colour.WHITE);
+        Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
         try {
@@ -83,13 +83,13 @@ public class GameTest {
         // Given
         when(board.isChecked(Colour.WHITE)).thenReturn(false);
         when(board.isChecked(Colour.BLACK)).thenReturn(false);
-        Game game = new Game(GameState.IN_PROGRESS, board, Colour.WHITE);
+        Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameState state = game.move(move);
+        GameStatus state = game.move(move);
 
         // Then
-        assertEquals(GameState.IN_PROGRESS, state);
+        assertEquals(GameStatus.IN_PROGRESS, state);
     }
 
     @Test
@@ -97,13 +97,13 @@ public class GameTest {
         // Given
         when(board.isChecked(Colour.WHITE)).thenReturn(false);
         when(board.isChecked(Colour.BLACK)).thenReturn(true);
-        Game game = new Game(GameState.IN_PROGRESS, board, Colour.WHITE);
+        Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameState state = game.move(move);
+        GameStatus state = game.move(move);
 
         // Then
-        assertEquals(GameState.IN_PROGRESS_CHECK, state);
+        assertEquals(GameStatus.IN_PROGRESS_CHECK, state);
     }
 
     @Test
@@ -111,13 +111,13 @@ public class GameTest {
         // Given
         when(board.isChecked(Colour.WHITE)).thenReturn(false);
         when(board.isCheckmated(Colour.BLACK)).thenReturn(true);
-        Game game = new Game(GameState.IN_PROGRESS, board, Colour.WHITE);
+        Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameState state = game.move(move);
+        GameStatus state = game.move(move);
 
         // Then
-        assertEquals(GameState.OVER_CHECKMATE, state);
+        assertEquals(GameStatus.OVER_CHECKMATE, state);
     }
 
     @Test
@@ -125,12 +125,12 @@ public class GameTest {
         // Given
         when(board.isChecked(Colour.WHITE)).thenReturn(false);
         when(board.isStalemated(Colour.BLACK)).thenReturn(true);
-        Game game = new Game(GameState.IN_PROGRESS, board, Colour.WHITE);
+        Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameState state = game.move(move);
+        GameStatus state = game.move(move);
 
         // Then
-        assertEquals(GameState.OVER_STALEMATE, state);
+        assertEquals(GameStatus.OVER_STALEMATE, state);
     }
 }
