@@ -4,6 +4,7 @@ import model.Colour;
 import model.Move;
 import model.exception.ChessException;
 import model.pieces.Board;
+import model.pieces.PiecesState;
 
 public class Game {
 
@@ -35,13 +36,13 @@ public class Game {
      * @return new state of the game
      * @throws ChessException if move is not allowed
      */
-    public GameStatus move(Move move) {
+    public GameState move(Move move) {
         // Pre-move validation
         validateGameInProgress();
         validateIsColoursTurn(move.getPieceState().getColour());
 
         // Make the move
-        board.move(move);
+        PiecesState boardState = board.move(move);
 
         // Post-move validation
         validateCurrentColourNotInCheck();
@@ -49,7 +50,8 @@ public class Game {
         // Update game
         updateGameStatus();
         turn = getOpponent(move.getPieceState().getColour());
-        return status;
+
+        return new GameState(status, boardState);
     }
 
     /**

@@ -7,6 +7,7 @@ import model.Square;
 import model.exception.ChessException;
 import model.piece.PieceState;
 import model.pieces.Board;
+import model.pieces.PiecesState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -21,12 +22,16 @@ public class GameTest {
     @Mock(name = "board")
     private Board board;
 
+    @Mock
+    private PiecesState mockPiecesState;
+
     private Move move;
 
     @BeforeEach
     public void setupMocks() {
         MockitoAnnotations.initMocks(this);
         move = new Move(new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.B8), Square.A6);
+        when(board.move(move)).thenReturn(mockPiecesState);
     }
 
     @Test
@@ -86,10 +91,10 @@ public class GameTest {
         Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameStatus state = game.move(move);
+        GameState state = game.move(move);
 
         // Then
-        assertEquals(GameStatus.IN_PROGRESS, state);
+        assertEquals(GameStatus.IN_PROGRESS, state.getStatus());
     }
 
     @Test
@@ -100,10 +105,11 @@ public class GameTest {
         Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameStatus state = game.move(move);
+        GameState state = game.move(move);
 
         // Then
-        assertEquals(GameStatus.IN_PROGRESS_CHECK, state);
+        assertEquals(mockPiecesState, state.getState());
+        assertEquals(GameStatus.IN_PROGRESS_CHECK, state.getStatus());
     }
 
     @Test
@@ -114,10 +120,11 @@ public class GameTest {
         Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameStatus state = game.move(move);
+        GameState state = game.move(move);
 
         // Then
-        assertEquals(GameStatus.OVER_CHECKMATE, state);
+        assertEquals(mockPiecesState, state.getState());
+        assertEquals(GameStatus.OVER_CHECKMATE, state.getStatus());
     }
 
     @Test
@@ -128,9 +135,10 @@ public class GameTest {
         Game game = new Game(GameStatus.IN_PROGRESS, board, Colour.WHITE);
 
         // When
-        GameStatus state = game.move(move);
+        GameState state = game.move(move);
 
         // Then
-        assertEquals(GameStatus.OVER_STALEMATE, state);
+        assertEquals(mockPiecesState, state.getState());
+        assertEquals(GameStatus.OVER_STALEMATE, state.getStatus());
     }
 }
