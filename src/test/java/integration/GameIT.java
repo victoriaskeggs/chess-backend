@@ -69,18 +69,14 @@ public class GameIT {
     }
 
     /**
-     * White and black reach stalemate:
+     * White and black perform ten move stalemate:
      *
      * WP: E2 to E3
-     * BP: A7 to A6
-     * WH: G1 to H3
-     * BP: A6 to A5
+     * BP: A7 to A5
      * WQ: D1 to H5
      * BC: A8 to A6
      * WQ: H5 to A5
-     * BP: H7 to H6
-     * WH: H3 to G1
-     * BP: H6 to H5
+     * BP: H7 to H5
      * WQ: A5 to C7
      * BC: A6 to H6
      * WP: H2 to H4
@@ -113,16 +109,8 @@ public class GameIT {
         GameState state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.WHITE, Square.E2), Square.E3));
         assertEquals(GameState.IN_PROGRESS, state);
 
-        // Black pawn from A7 to A6
-        state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.BLACK, Square.A7), Square.A6));
-        assertEquals(GameState.IN_PROGRESS, state);
-
-        // White knight from G1 to H3
-        state = game.move(new Move(new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.G1), Square.H3));
-        assertEquals(GameState.IN_PROGRESS, state);
-
-        // Black pawn from A6 to A5
-        state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.BLACK, Square.A6), Square.A5));
+        // Black pawn from A7 to A5
+        state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.BLACK, Square.A7), Square.A5));
         assertEquals(GameState.IN_PROGRESS, state);
 
         // White queen from D1 to H5
@@ -137,16 +125,8 @@ public class GameIT {
         state = game.move(new Move(new PieceState(PieceType.QUEEN, Colour.WHITE, Square.H5), Square.A5));
         assertEquals(GameState.IN_PROGRESS, state);
 
-        // Black pawn from H7 to H6
-        state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.BLACK, Square.H7), Square.H6));
-        assertEquals(GameState.IN_PROGRESS, state);
-
-        // White knight from H3 to G1
-        state = game.move(new Move(new PieceState(PieceType.KNIGHT, Colour.WHITE, Square.H3), Square.G1));
-        assertEquals(GameState.IN_PROGRESS, state);
-
-        // Black pawn from H6 to H5
-        state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.BLACK, Square.H6), Square.H5));
+        // Black pawn from H7 to H5
+        state = game.move(new Move(new PieceState(PieceType.PAWN, Colour.BLACK, Square.H7), Square.H5));
         assertEquals(GameState.IN_PROGRESS, state);
 
         // White queen from A5 to C7
