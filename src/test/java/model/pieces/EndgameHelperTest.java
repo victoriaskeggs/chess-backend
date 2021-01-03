@@ -5,7 +5,6 @@ import model.Move;
 import model.PieceType;
 import model.Square;
 import model.piece.Piece;
-import model.piece.PieceFactory;
 import model.piece.PieceState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,12 +27,6 @@ public class EndgameHelperTest {
      */
     @InjectMocks
     private EndgameHelper endgameHelper;
-
-    /**
-     * Dependency in EndgameHelper
-     */
-    @Mock(name = "pieceFactory")
-    private PieceFactory pieceFactory;
 
     /**
      * Dependency in EndgameHelper
@@ -82,6 +75,8 @@ public class EndgameHelperTest {
         /**
          * Then
          */
+        verify(piecesMover).clearPieces();
+        verify(piecesMover).addPieces(piecesState);
         assertTrue(isInCheck);
     }
 
@@ -124,6 +119,8 @@ public class EndgameHelperTest {
         /**
          * Then
          */
+        verify(piecesMover).clearPieces();
+        verify(piecesMover).addPieces(piecesState);
         assertFalse(isInCheck);
     }
 
@@ -333,7 +330,6 @@ public class EndgameHelperTest {
         // Set up piece state
         PieceState state = new PieceState(type, colour, currentSquare);
         when(piece.getState()).thenReturn(state);
-        when(pieceFactory.createPiece(state)).thenReturn(piece);
         when(piecesMover.findPiece(state)).thenReturn(piece);
 
         // Set up threatened squares
@@ -353,14 +349,12 @@ public class EndgameHelperTest {
     }
 
     /**
-     * Sets up piece factory and pieces mover to return mocked pieces when asked to create or get pieces given a
-     * PiecesState
+     * Sets up pieces mover to return mocked pieces when asked to create or get pieces given a PiecesState
      * @param pieces to connect to PiecesState
      * @return PiecesState connected to pieces
      */
     private PiecesState connectedPiecesToState(Set<Piece> pieces) {
         PiecesState piecesState = mock(PiecesState.class);
-        when(pieceFactory.createPieces(piecesState)).thenReturn(pieces);
         when(piecesMover.getPieces()).thenReturn(pieces);
         return piecesState;
     }

@@ -3,24 +3,17 @@ package model.pieces;
 import model.Move;
 import model.Square;
 import model.piece.Piece;
-import model.piece.PieceFactory;
 import model.piece.PieceState;
 
 import java.util.Set;
 
 public class EndgameHelper {
     /**
-     * Factory to generate new pieces for checking endgame conditions
-     */
-    private PieceFactory pieceFactory;
-
-    /**
      * Makes test moves in a trial environment to check endgame conditions
      */
     private PiecesMover piecesMover;
 
     public EndgameHelper() {
-        pieceFactory = new PieceFactory();
         piecesMover = new PiecesMover();
     }
 
@@ -31,8 +24,13 @@ public class EndgameHelper {
      * @return true if the given king is under check
      */
     public boolean isInCheck(PieceState kingState, PiecesState piecesState) {
-        Piece king = pieceFactory.createPiece(kingState);
-        Set<Piece> pieces = pieceFactory.createPieces(piecesState);
+        // Sets up PieceMover to control the provided pieces
+        piecesMover.clearPieces();
+        piecesMover.addPieces(piecesState);
+
+        Set<Piece> pieces = piecesMover.getPieces();
+        Piece king = piecesMover.findPiece(kingState);
+
         return isInCheck(king, pieces);
     }
 
